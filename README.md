@@ -1,4 +1,4 @@
-![Build Status](https://img.shields.io/github/actions/workflow/status/zirco-lang/zircon/build.yml?style=flat-square) ![Repo Size](https://img.shields.io/github/repo-size/zirco-lang/zircon?style=flat-square) ![open issues](https://img.shields.io/github/issues-raw/zirco-lang/zircon?style=flat-square) ![open PRs](https://img.shields.io/github/issues-pr-raw/zirco-lang/zircon?style=flat-square) ![license](https://img.shields.io/github/license/zirco-lang/zircon?style=flat-square) [![All Contributors](https://img.shields.io/github/all-contributors/zirco-lang/zircon?color=ee8449&style=flat-square)](#contributors)
+![Build Status](https://img.shields.io/github/actions/workflow/status/zirco-lang/zircon/build.yml?style=flat-square) ![Repo Size](https://img.shields.io/github/repo-size/zirco-lang/zircon?style=flat-square) ![open issues](https://img.shields.io/github/issues-raw/zirco-lang/zircon?style=flat-square) ![open PRs](https://img.shields.io/github/issues-pr-raw/zirco-lang/zircon?style=flat-square) ![license](https://img.shields.io/github/license/zirco-lang/zircon?style=flat-square)
 
 <div align="center">
 

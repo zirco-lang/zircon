@@ -1,6 +1,10 @@
 //! Command line interface for Zircon.
 
-use clap::{ArgAction, Parser};
+use std::error::Error;
+
+use clap::{ArgAction, Parser, Subcommand};
+
+use crate::cmds::self_cmds;
 
 /// The Zircon toolchain installer and build tool
 #[derive(Parser)]
@@ -12,11 +16,19 @@ pub struct Cli {
 
     /// The command to run
     #[command(subcommand)]
-    pub command: Command,
+    pub command: ZirconCommand,
 }
 
 /// The command to run
-#[derive(Parser)]
-pub enum Command {
-    // X,
+#[derive(Subcommand)]
+pub enum ZirconCommand {
+    /// Commands to manage Zircon itself
+    #[command(name = "self", subcommand)]
+    SelfCmds(self_cmds::SelfCmds),
+}
+
+/// A trait for dispatching commands
+pub trait DispatchCommand {
+    /// Dispatch the command
+    fn dispatch(self) -> Result<(), Box<dyn Error>>;
 }

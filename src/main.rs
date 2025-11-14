@@ -51,15 +51,17 @@
 )]
 
 mod cli;
+mod cmds;
+
+use std::error::Error;
 
 use clap::Parser;
-use cli::Cli;
+use cli::{Cli, DispatchCommand, ZirconCommand};
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
-    // RIP
-    let _ = cli;
-
-    println!("Hello, Zircon!");
+    match cli.command {
+        ZirconCommand::SelfCmds(self_cmds) => self_cmds.dispatch(),
+    }
 }

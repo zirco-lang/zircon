@@ -9,4 +9,14 @@ pub struct Cli {
     /// See what version of Zircon you are using
     #[arg(short, long, action = ArgAction::Version)]
     pub version: (),
+
+    /// The command to run
+    #[command(subcommand)]
+    pub command: Command,
+}
+
+/// The command to run
+#[derive(Parser)]
+pub enum Command {
+    // X,
 }

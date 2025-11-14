@@ -6,22 +6,17 @@
     clippy::pedantic,
     clippy::missing_docs_in_private_items,
     missing_docs,
-    clippy::absolute_paths,
-    clippy::as_conversions,
     clippy::dbg_macro,
     clippy::decimal_literal_representation,
     clippy::deref_by_slicing,
     clippy::disallowed_script_idents,
-    clippy::else_if_without_else,
     clippy::empty_structs_with_brackets,
     clippy::format_push_string,
     clippy::if_then_some_else_none,
     clippy::let_underscore_must_use,
-    clippy::min_ident_chars,
     clippy::mixed_read_write_in_expression,
     clippy::multiple_inherent_impl,
     clippy::multiple_unsafe_ops_per_block,
-    clippy::non_ascii_literal,
     clippy::redundant_type_annotations,
     clippy::rest_pat_in_fully_bound_structs,
     clippy::same_name_method,
@@ -47,11 +42,21 @@
     clippy::multiple_crate_versions,
     clippy::cargo_common_metadata,
     clippy::module_name_repetitions,
-    clippy::doc_comment_double_space_linebreaks
+    clippy::doc_comment_double_space_linebreaks,
+    clippy::else_if_without_else,
+    clippy::min_ident_chars,
+    clippy::non_ascii_literal,
+    clippy::absolute_paths,
+    clippy::uninlined_format_args
 )]
 
 mod cli;
 mod cmds;
+mod paths;
+mod git_utils;
+mod build;
+mod deps;
+mod installer;
 
 use std::error::Error;
 
@@ -63,5 +68,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match cli.command {
         ZirconCommand::SelfCmds(self_cmds) => self_cmds.dispatch(),
+        ZirconCommand::Build(build_cmd) => build_cmd.dispatch(),
+        ZirconCommand::Switch(switch_cmd) => switch_cmd.dispatch(),
+        ZirconCommand::Update(update_cmd) => update_cmd.dispatch(),
+        ZirconCommand::Env(env_cmd) => env_cmd.dispatch(),
+        ZirconCommand::Internal(internal_cmds) => internal_cmds.dispatch(),
     }
 }

@@ -48,5 +48,6 @@ ln -sf ~/.zircon/self/target/release/zircon ~/.zircon/bin/zircon
 # Users will later be instructed to add this to their shell profile.
 export PATH="$HOME/.zircon/bin:$PATH"
 
-zircon
-echo "TODO"
+# Run the bootstrap command
+echo ""
+zircon _ bootstrap

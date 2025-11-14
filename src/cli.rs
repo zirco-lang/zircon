@@ -5,6 +5,10 @@ use std::error::Error;
 use clap::{ArgAction, Parser, Subcommand};
 
 use crate::cmds::self_cmds;
+use crate::cmds::build_cmds;
+use crate::cmds::toolchain_cmds;
+use crate::cmds::env_cmds;
+use crate::cmds::internal_cmds;
 
 /// The Zircon toolchain installer and build tool
 #[derive(Parser)]
@@ -25,6 +29,22 @@ pub enum ZirconCommand {
     /// Commands to manage Zircon itself
     #[command(name = "self", subcommand)]
     SelfCmds(self_cmds::SelfCmds),
+    
+    /// Build a specific version of zrc
+    Build(build_cmds::BuildCmd),
+    
+    /// Switch to a different toolchain version
+    Switch(toolchain_cmds::SwitchCmd),
+    
+    /// Update the current toolchain
+    Update(toolchain_cmds::UpdateCmd),
+    
+    /// Output shell environment configuration
+    Env(env_cmds::EnvCmd),
+    
+    /// Internal commands (for bootstrap and tooling)
+    #[command(name = "_", subcommand, hide = true)]
+    Internal(internal_cmds::InternalCmds),
 }
 
 /// A trait for dispatching commands

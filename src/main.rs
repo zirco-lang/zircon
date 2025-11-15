@@ -50,13 +50,13 @@
     clippy::uninlined_format_args
 )]
 
+mod build;
 mod cli;
 mod cmds;
-mod paths;
-mod git_utils;
-mod build;
 mod deps;
+mod git_utils;
 mod installer;
+mod paths;
 
 use std::error::Error;
 

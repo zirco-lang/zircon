@@ -45,6 +45,8 @@ Download LLVM 20 from [LLVM releases](https://releases.llvm.org/)
 
 ### Bootstrap Installation
 
+#### Linux/macOS
+
 Run the bootstrap script to install Zircon (latest main branch):
 
 ```bash
@@ -56,6 +58,23 @@ Or install a specific version:
 ```bash
 curl -sSf https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.sh | bash -s v0.1.0
 ```
+
+#### Windows (PowerShell)
+
+Run the bootstrap script to install Zircon (latest main branch):
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.ps1 | iex
+```
+
+Or install a specific version:
+
+```powershell
+$script = iwr -useb https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.ps1
+$script.Content | iex -ArgumentList "v0.1.0"
+```
+
+#### Manual Installation
 
 Or manually:
 
@@ -225,7 +244,7 @@ This sets:
 
 Zircon manages files in `~/.zircon` (or `%USERPROFILE%\.zircon` on Windows):
 
-```
+```text
 ~/.zircon
 ├── sources/
 │   └── zirco-lang/

@@ -7,8 +7,7 @@ use std::path::{Path, PathBuf};
 /// Can be overridden with `ZIRCON_PREFIX` environment variable
 pub fn zircon_root() -> PathBuf {
     std::env::var("ZIRCON_PREFIX").map_or_else(
-        |_| dirs::home_dir()
-            .map_or_else(|| PathBuf::from(".zircon"), |home| home.join(".zircon")),
+        |_| dirs::home_dir().map_or_else(|| PathBuf::from(".zircon"), |home| home.join(".zircon")),
         PathBuf::from,
     )
 }
@@ -63,7 +62,11 @@ pub fn self_bin_dir() -> PathBuf {
 
 /// Get the zircon binary path in self
 pub fn self_zircon_binary() -> PathBuf {
-    self_bin_dir().join(if cfg!(windows) { "zircon.exe" } else { "zircon" })
+    self_bin_dir().join(if cfg!(windows) {
+        "zircon.exe"
+    } else {
+        "zircon"
+    })
 }
 
 /// Get the root bin directory
@@ -78,7 +81,11 @@ pub fn zrc_binary_link() -> PathBuf {
 
 /// Get the zircon binary link in root bin
 pub fn zircon_binary_link() -> PathBuf {
-    bin_dir().join(if cfg!(windows) { "zircon.exe" } else { "zircon" })
+    bin_dir().join(if cfg!(windows) {
+        "zircon.exe"
+    } else {
+        "zircon"
+    })
 }
 
 /// Get the include directory link
@@ -122,7 +129,7 @@ pub fn create_link(src: &Path, dst: &Path) -> std::io::Result<()> {
             std::fs::remove_file(dst).ok();
         }
     }
-    
+
     std::os::unix::fs::symlink(src, dst)
 }
 
@@ -137,7 +144,7 @@ pub fn create_link(src: &Path, dst: &Path) -> std::io::Result<()> {
             std::fs::remove_file(dst)?;
         }
     }
-    
+
     if src.is_dir() {
         std::os::windows::fs::symlink_dir(src, dst)
     } else {

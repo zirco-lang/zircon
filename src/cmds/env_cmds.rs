@@ -1,7 +1,7 @@
 //! Commands for environment configuration
 
-use std::error::Error;
 use clap::Parser;
+use std::error::Error;
 
 use crate::cli::DispatchCommand;
 use crate::paths;
@@ -18,10 +18,12 @@ impl DispatchCommand for EnvCmd {
     fn dispatch(self) -> Result<(), Box<dyn Error>> {
         let bin_dir = paths::bin_dir();
         let include_dir = paths::include_dir_link();
-        
+
         // Determine shell type
-        let shell_type = self.shell.map_or_else(detect_shell, |shell| shell.to_lowercase());
-        
+        let shell_type = self
+            .shell
+            .map_or_else(detect_shell, |shell| shell.to_lowercase());
+
         match shell_type.as_str() {
             "fish" => {
                 // Fish shell syntax
@@ -52,7 +54,7 @@ impl DispatchCommand for EnvCmd {
                 }
             }
         }
-        
+
         Ok(())
     }
 }
@@ -69,13 +71,12 @@ fn detect_shell() -> String {
         // Default to cmd on Windows
         return "cmd".to_string();
     }
-    
+
     // On Unix-like systems, check SHELL environment variable
     #[cfg(not(windows))]
     {
-        let shell = std::env::var("SHELL")
-            .unwrap_or_else(|_| "/bin/bash".to_string());
-        
+        let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".to_string());
+
         if shell.contains("fish") {
             "fish".to_string()
         } else {

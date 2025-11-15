@@ -2,34 +2,47 @@
 
 use std::process::Command;
 
-/// Check if LLVM is installed
+/// Check if LLVM 20 is installed (REQUIRED for Zirco)
 pub fn check_llvm() -> Result<String, Box<dyn std::error::Error>> {
-    // Try llvm-config first
-    let output = Command::new("llvm-config")
-        .arg("--version")
-        .output();
+    // List of possible llvm-config command names to try
+    let llvm_config_candidates = [
+        // Direct command
+        "llvm-config",
+        // Version-suffixed (common on Ubuntu/Debian)
+        "llvm-config-20",
+        // MacPorts prefix
+        "llvm-config-mp-20",
+        // Homebrew paths (Intel Mac)
+        "/usr/local/opt/llvm@20/bin/llvm-config",
+        "/usr/local/opt/llvm/bin/llvm-config",
+        // Homebrew paths (Apple Silicon Mac)
+        "/opt/homebrew/opt/llvm@20/bin/llvm-config",
+        "/opt/homebrew/opt/llvm/bin/llvm-config",
+    ];
     
-    if let Ok(output) = output
-        && output.status.success() {
-            let version = String::from_utf8_lossy(&output.stdout);
-            return Ok(version.trim().to_string());
-        }
-    
-    // Try llvm-config with version suffix (common on some systems)
-    for version in &["20", "19", "18", "17", "16", "15"] {
-        let cmd_name = format!("llvm-config-{}", version);
-        let output = Command::new(&cmd_name)
+    for cmd in &llvm_config_candidates {
+        let output = Command::new(cmd)
             .arg("--version")
             .output();
         
         if let Ok(output) = output
             && output.status.success() {
-                let ver = String::from_utf8_lossy(&output.stdout);
-                return Ok(ver.trim().to_string());
+                let version_str = String::from_utf8_lossy(&output.stdout);
+                let version = version_str.trim();
+                
+                // Check if it's LLVM 20.x.x
+                if version.starts_with("20.") {
+                    return Ok(version.to_string());
+                }
+                
+                // If we found LLVM but it's not version 20, warn about it
+                if !version.is_empty() {
+                    eprintln!("⚠ Found LLVM {} at '{}', but Zirco requires LLVM 20.x", version, cmd);
+                }
             }
     }
     
-    Err("LLVM not found. Please install LLVM (preferably version 20)".into())
+    Err("LLVM 20 not found. Zirco REQUIRES LLVM 20.x specifically.\n  Install instructions:\n    - macOS (Homebrew): brew install llvm@20\n    - macOS (MacPorts): sudo port install llvm-20\n    - Ubuntu/Debian: sudo apt install llvm-20 llvm-20-dev\n    - Windows: Download from https://releases.llvm.org/".into())
 }
 
 /// Check if clang is installed
@@ -54,10 +67,9 @@ pub fn warn_dependencies() {
     println!("Checking dependencies...");
     
     match check_llvm() {
-        Ok(version) => println!("✓ LLVM found: {}", version),
+        Ok(version) => println!("✓ LLVM 20 found: {}", version),
         Err(e) => {
-            eprintln!("⚠ {}", e);
-            eprintln!("  You may encounter build errors without LLVM.");
+            eprintln!("✗ {}", e);
         }
     }
     

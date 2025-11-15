@@ -17,24 +17,31 @@ Zircon is a toolchain installer for the Zirco programming language. It allows yo
 Zircon requires the following dependencies to build and run Zirco:
 
 - **Rust** (install from [rustup.rs](https://rustup.rs/))
-- **LLVM 20** (or compatible version)
+- **LLVM 20** (**REQUIRED** - Zirco only works with LLVM 20.x)
 - **clang** (usually included with LLVM)
 - **Git**
 
-#### Installing LLVM and clang
+#### Installing LLVM 20 and clang
+
+**On macOS (Homebrew):**
+```bash
+brew install llvm@20
+```
+
+**On macOS (MacPorts):**
+```bash
+sudo port install llvm-20
+```
 
 **On Ubuntu/Debian:**
 ```bash
 sudo apt install llvm-20 llvm-20-dev clang
 ```
 
-**On macOS:**
-```bash
-brew install llvm@20
-```
-
 **On Windows:**
-Download from [LLVM releases](https://releases.llvm.org/)
+Download LLVM 20 from [LLVM releases](https://releases.llvm.org/)
+
+**Note:** Zirco requires LLVM 20 specifically. Other versions will not work.
 
 ### Bootstrap Installation
 
@@ -48,13 +55,15 @@ Or manually:
 
 ```bash
 # Clone and build Zircon
-git clone https://github.com/zirco-lang/zircon.git ~/.zircon/self
-cd ~/.zircon/self
+mkdir -p ~/.zircon/sources/zirco-lang
+git clone https://github.com/zirco-lang/zircon.git ~/.zircon/sources/zirco-lang/zircon
+cd ~/.zircon/sources/zirco-lang/zircon
 cargo build --release
 
-# Create symlink
+# Create symlinks
+ln -sf ~/.zircon/sources/zirco-lang/zircon ~/.zircon/self
 mkdir -p ~/.zircon/bin
-ln -sf ~/.zircon/self/target/release/zircon ~/.zircon/bin/zircon
+ln -sf ~/.zircon/sources/zirco-lang/zircon/target/release/zircon ~/.zircon/bin/zircon
 
 # Add to PATH
 export PATH="$HOME/.zircon/bin:$PATH"
@@ -192,12 +201,10 @@ Zircon manages files in `~/.zircon` (or `%USERPROFILE%\.zircon` on Windows):
 │   │   └── include/
 │   │       └── *.zh
 │   └── current -> v0.1.0  # Symlink to active toolchain
-├── self/
-│   └── bin/
-│       └── zircon
+├── self -> sources/zirco-lang/zircon  # Symlink to zircon source
 └── bin/
     ├── zrc -> ../toolchains/current/bin/zrc
-    └── zircon -> ../self/bin/zircon
+    └── zircon -> ../sources/zirco-lang/zircon/target/release/zircon
 ```
 
 You can override the installation directory with the `ZIRCON_PREFIX` environment variable:

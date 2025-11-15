@@ -48,14 +48,17 @@ pub fn current_toolchain_link() -> PathBuf {
     toolchains_dir().join("current")
 }
 
-/// Get the self directory
+/// Get the self directory (symlink to zircon source)
+#[allow(dead_code)]
 pub fn self_dir() -> PathBuf {
     zircon_root().join("self")
 }
 
 /// Get the self bin directory
 pub fn self_bin_dir() -> PathBuf {
-    self_dir().join("bin")
+    // Self is a symlink to sources/zirco-lang/zircon
+    // So the binary is actually in sources/zirco-lang/zircon/target/release
+    zircon_source_dir().join("target").join("release")
 }
 
 /// Get the zircon binary path in self

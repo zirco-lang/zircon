@@ -27,22 +27,25 @@ if [[ -d ~/.zircon ]]; then
     rm -rf ~/.zircon
 fi
 
-mkdir -p ~/.zircon
-cd ~/.zircon
+mkdir -p ~/.zircon/sources/zirco-lang
+cd ~/.zircon/sources/zirco-lang
 
 # Clone the Zircon repository
 echo "Downloading Zircon source code..."
 # TODO: In the future, we may want to do a shallow clone or download a specific release tarball
-git clone "$ZIRCON_REPO" self
-cd self
+git clone "$ZIRCON_REPO" zircon
+cd zircon
 
 echo "Building Zircon..."
 cargo build --release
 
+# Create symlink from self to sources/zirco-lang/zircon
+ln -sf ~/.zircon/sources/zirco-lang/zircon ~/.zircon/self
+
 # Create a symlink to the zircon binary in ~/.zircon/bin
 mkdir -p ~/.zircon/bin
 # ~/.zircon/bin/zircon is managed by this script. Later there will be other files in ~/.zircon/bin that Zircon itself manages.
-ln -sf ~/.zircon/self/target/release/zircon ~/.zircon/bin/zircon
+ln -sf ~/.zircon/sources/zirco-lang/zircon/target/release/zircon ~/.zircon/bin/zircon
 
 # This only adds to PATH for the duration of this script.
 # Users will later be instructed to add this to their shell profile.

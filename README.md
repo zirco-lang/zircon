@@ -10,6 +10,179 @@
 
 Zircon is a toolchain installer for the Zirco programming language. It allows you to easily install and manage different versions of the Zirco compiler, libraries, and tools on your system.
 
+## Installation
+
+### Prerequisites
+
+Zircon requires the following dependencies to build and run Zirco:
+
+- **Rust** (install from [rustup.rs](https://rustup.rs/))
+- **LLVM 20** (or compatible version)
+- **clang** (usually included with LLVM)
+- **Git**
+
+#### Installing LLVM and clang
+
+**On Ubuntu/Debian:**
+```bash
+sudo apt install llvm-20 llvm-20-dev clang
+```
+
+**On macOS:**
+```bash
+brew install llvm@20
+```
+
+**On Windows:**
+Download from [LLVM releases](https://releases.llvm.org/)
+
+### Bootstrap Installation
+
+Run the bootstrap script to install Zircon:
+
+```bash
+curl -sSf https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.sh | bash
+```
+
+Or manually:
+
+```bash
+# Clone and build Zircon
+git clone https://github.com/zirco-lang/zircon.git ~/.zircon/self
+cd ~/.zircon/self
+cargo build --release
+
+# Create symlink
+mkdir -p ~/.zircon/bin
+ln -sf ~/.zircon/self/target/release/zircon ~/.zircon/bin/zircon
+
+# Add to PATH
+export PATH="$HOME/.zircon/bin:$PATH"
+
+# Run bootstrap
+zircon _ bootstrap
+```
+
+### Add to Shell Profile
+
+Add Zircon to your PATH permanently by adding this to your `~/.bashrc`, `~/.zshrc`, or equivalent:
+
+```bash
+export PATH="$HOME/.zircon/bin:$PATH"
+```
+
+Or use the environment command:
+
+```bash
+source <(zircon env)
+```
+
+## Usage
+
+### Build a Zirco Toolchain
+
+Build the latest version from the main branch:
+
+```bash
+zircon build main
+```
+
+Build a specific version (tag):
+
+```bash
+zircon build v0.1.0
+```
+
+Build from a specific branch:
+
+```bash
+zircon build feat-145
+```
+
+Build from a custom repository:
+
+```bash
+zircon build --zrc-repo https://github.com/SomeFork/zrc main
+```
+
+### Switch Between Toolchains
+
+```bash
+zircon switch v0.1.0
+```
+
+### Update Current Toolchain
+
+Fetch the latest changes for the current toolchain and rebuild:
+
+```bash
+zircon update
+```
+
+### Update Zircon Itself
+
+```bash
+zircon self update
+```
+
+### Environment Configuration
+
+Output shell environment variables:
+
+```bash
+zircon env
+```
+
+Or load them directly:
+
+```bash
+source <(zircon env)
+```
+
+This sets:
+- `PATH` to include `~/.zircon/bin`
+- `ZRC_INCLUDE_PATH` to point to the current toolchain's include directory
+
+## Directory Structure
+
+Zircon manages files in `~/.zircon` (or `%USERPROFILE%\.zircon` on Windows):
+
+```
+~/.zircon
+├── sources/
+│   └── zirco-lang/
+│       ├── zrc/          # Zirco compiler source
+│       └── zircon/       # Zircon source (for self-updates)
+├── toolchains/
+│   ├── v0.1.0/
+│   │   ├── bin/
+│   │   │   └── zrc
+│   │   └── include/
+│   │       └── *.zh
+│   └── current -> v0.1.0  # Symlink to active toolchain
+├── self/
+│   └── bin/
+│       └── zircon
+└── bin/
+    ├── zrc -> ../toolchains/current/bin/zrc
+    └── zircon -> ../self/bin/zircon
+```
+
+You can override the installation directory with the `ZIRCON_PREFIX` environment variable:
+
+```bash
+ZIRCON_PREFIX=/opt/zircon zircon build v0.1.0
+```
+
+## Platform Support
+
+Zircon is designed to work on:
+- **Linux** ✓
+- **macOS** ✓
+- **Windows** ✓
+
+Windows support includes proper symlink handling (or copies as fallback).
+
 ## A Note on Stability
 
 So that Zirco can continue to evolve at a rapid pace, there are **NO STABILITY GUARENTEES** on the current version of Zirco, `zrc`, and zircon.

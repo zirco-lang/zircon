@@ -67,6 +67,8 @@ zircon _ bootstrap
 
 **Important:** You must add Zircon's bin directory to your PATH before using the `env` command.
 
+#### Linux/macOS (Bash/Zsh)
+
 Add this to your `~/.bashrc`, `~/.zshrc`, or equivalent:
 
 ```bash
@@ -78,6 +80,32 @@ Then, load the full environment (including `ZRC_INCLUDE_PATH`) by running:
 ```bash
 source <(zircon env)
 ```
+
+#### Windows (`PowerShell`)
+
+Add Zircon to your PATH and load environment variables:
+
+```powershell
+$env:Path = "$env:USERPROFILE\.zircon\bin;$env:Path"
+# Then run:
+iex (zircon env --shell powershell)
+```
+
+To make it permanent, add to your `PowerShell` profile (`$PROFILE`):
+
+```powershell
+$env:Path = "$env:USERPROFILE\.zircon\bin;$env:Path"
+```
+
+#### Windows (CMD)
+
+```cmd
+set PATH=%USERPROFILE%\.zircon\bin;%PATH%
+REM Then run:
+zircon env --shell cmd
+```
+
+**Note:** The `env` command auto-detects your shell on Unix systems. On Windows, it defaults to `PowerShell` if `PSModulePath` is set, otherwise CMD. You can override with `--shell` flag.
 
 The `env` command sets additional environment variables required by zrc, such as the include path for standard library headers.
 

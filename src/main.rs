@@ -70,7 +70,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         ZirconCommand::SelfCmds(self_cmds) => self_cmds.dispatch(),
         ZirconCommand::Build(build_cmd) => build_cmd.dispatch(),
         ZirconCommand::Switch(switch_cmd) => switch_cmd.dispatch(),
-        ZirconCommand::Update(update_cmd) => update_cmd.dispatch(),
+        ZirconCommand::List(list_cmd) => list_cmd.dispatch(),
+        ZirconCommand::Delete(delete_cmd) => delete_cmd.dispatch(),
+        ZirconCommand::Prune(prune_cmd) => prune_cmd.dispatch(),
         ZirconCommand::Env(env_cmd) => env_cmd.dispatch(),
         ZirconCommand::Internal(internal_cmds) => internal_cmds.dispatch(),
     }

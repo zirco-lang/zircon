@@ -84,7 +84,7 @@ Add this to your `~/.bashrc`, `~/.zshrc`, or equivalent:
 export PATH="$HOME/.zircon/bin:$PATH"
 ```
 
-Then, load the full environment (including `ZRC_INCLUDE_PATH`) by running:
+Then, load the full environment (including `ZIRCO_INCLUDE_PATH`) by running:
 
 ```bash
 source <(zircon env)
@@ -152,12 +152,30 @@ zircon build --zrc-repo https://github.com/SomeFork/zrc main
 zircon switch v0.1.0
 ```
 
-### Update Current Toolchain
-
-Fetch the latest changes for the current toolchain and rebuild:
+### List Installed Toolchains
 
 ```bash
-zircon update
+zircon list
+```
+
+### Delete a Toolchain
+
+```bash
+zircon delete v0.1.0
+```
+
+### Prune Unused Toolchains
+
+Remove all toolchains except the currently active one:
+
+```bash
+zircon prune
+```
+
+Or skip the confirmation prompt:
+
+```bash
+zircon prune -y
 ```
 
 ### Update Zircon Itself
@@ -182,7 +200,7 @@ source <(zircon env)
 
 This sets:
 - `PATH` to include `~/.zircon/bin`
-- `ZRC_INCLUDE_PATH` to point to the current toolchain's include directory
+- `ZIRCO_INCLUDE_PATH` to point to the current toolchain's include directory
 
 ## Directory Structure
 

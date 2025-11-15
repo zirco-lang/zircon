@@ -36,8 +36,14 @@ pub enum ZirconCommand {
     /// Switch to a different toolchain version
     Switch(toolchain_cmds::SwitchCmd),
     
-    /// Update the current toolchain
-    Update(toolchain_cmds::UpdateCmd),
+    /// List installed toolchains
+    List(toolchain_cmds::ListCmd),
+    
+    /// Delete a specific toolchain
+    Delete(toolchain_cmds::DeleteCmd),
+    
+    /// Remove unused toolchains (keep only current)
+    Prune(toolchain_cmds::PruneCmd),
     
     /// Output shell environment configuration
     Env(env_cmds::EnvCmd),

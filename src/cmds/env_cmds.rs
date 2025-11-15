@@ -27,28 +27,28 @@ impl DispatchCommand for EnvCmd {
                 // Fish shell syntax
                 println!("set -gx PATH \"{}\" $PATH;", bin_dir.display());
                 if include_dir.exists() {
-                    println!("set -gx ZRC_INCLUDE_PATH \"{}\";", include_dir.display());
+                    println!("set -gx ZIRCO_INCLUDE_PATH \"{}\";", include_dir.display());
                 }
             }
             "powershell" | "pwsh" => {
                 // PowerShell syntax
                 println!("$env:Path = \"{};$env:Path\";", bin_dir.display());
                 if include_dir.exists() {
-                    println!("$env:ZRC_INCLUDE_PATH = \"{}\";", include_dir.display());
+                    println!("$env:ZIRCO_INCLUDE_PATH = \"{}\";", include_dir.display());
                 }
             }
             "cmd" => {
                 // Windows CMD syntax
                 println!("set PATH={};%PATH%", bin_dir.display());
                 if include_dir.exists() {
-                    println!("set ZRC_INCLUDE_PATH={}", include_dir.display());
+                    println!("set ZIRCO_INCLUDE_PATH={}", include_dir.display());
                 }
             }
             _ => {
                 // Bash/Zsh syntax (default)
                 println!("export PATH=\"{}:$PATH\";", bin_dir.display());
                 if include_dir.exists() {
-                    println!("export ZRC_INCLUDE_PATH=\"{}\";", include_dir.display());
+                    println!("export ZIRCO_INCLUDE_PATH=\"{}\";", include_dir.display());
                 }
             }
         }

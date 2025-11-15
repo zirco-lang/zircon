@@ -65,17 +65,21 @@ zircon _ bootstrap
 
 ### Add to Shell Profile
 
-Add Zircon to your PATH permanently by adding this to your `~/.bashrc`, `~/.zshrc`, or equivalent:
+**Important:** You must add Zircon's bin directory to your PATH before using the `env` command.
+
+Add this to your `~/.bashrc`, `~/.zshrc`, or equivalent:
 
 ```bash
 export PATH="$HOME/.zircon/bin:$PATH"
 ```
 
-Or use the environment command:
+Then, load the full environment (including `ZRC_INCLUDE_PATH`) by running:
 
 ```bash
 source <(zircon env)
 ```
+
+The `env` command sets additional environment variables required by zrc, such as the include path for standard library headers.
 
 ## Usage
 

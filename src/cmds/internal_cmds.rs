@@ -36,13 +36,13 @@ fn cmd_bootstrap() -> Result<(), Box<dyn Error>> {
     println!("\nNext steps:");
     println!("  1. Add Zircon to your PATH:");
     println!("     export PATH=\"{}:$PATH\"", paths::bin_dir().display());
-    println!("\n  2. Or add to your shell profile (~/.bashrc, ~/.zshrc, etc.):");
-    println!("     echo 'export PATH=\"{}:$PATH\"' >> ~/.bashrc", paths::bin_dir().display());
-    println!("\n  3. Or use the env command:");
+    println!("\n  2. Then load the environment with:");
     println!("     source <(zircon env)");
-    println!("\n  4. Install a zrc version:");
+    println!("\n  3. Install a zrc version:");
     println!("     zircon build main");
     println!("     zircon build v0.1.0");
+    println!("\n  To make PATH permanent, add to your shell profile (~/.bashrc, ~/.zshrc, etc.):");
+    println!("     echo 'export PATH=\"{}:$PATH\"' >> ~/.bashrc", paths::bin_dir().display());
     
     Ok(())
 }

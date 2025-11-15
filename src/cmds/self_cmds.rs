@@ -5,7 +5,7 @@ mod cmd_version;
 use std::error::Error;
 use std::fs;
 
-use clap::Subcommand;
+use clap::{Parser, Subcommand};
 
 use crate::cli::DispatchCommand;
 
@@ -16,7 +16,15 @@ pub enum SelfCmds {
     Version,
     
     /// Update Zircon itself
-    Update,
+    Update(UpdateSelfCmd),
+}
+
+/// Update Zircon itself to a specific version
+#[derive(Parser)]
+pub struct UpdateSelfCmd {
+    /// Git reference to update to (branch, tag, or commit). Defaults to 'main'
+    #[arg(default_value = "main")]
+    pub reference: String,
 }
 
 impl DispatchCommand for SelfCmds {
@@ -26,16 +34,16 @@ impl DispatchCommand for SelfCmds {
                 cmd_version::cmd_version();
                 Ok(())
             }
-            Self::Update => cmd_self_update(),
+            Self::Update(cmd) => cmd_self_update(&cmd.reference),
         }
     }
 }
 
 /// Update Zircon itself
-fn cmd_self_update() -> Result<(), Box<dyn Error>> {
+fn cmd_self_update(reference: &str) -> Result<(), Box<dyn Error>> {
     use crate::{paths, git_utils, build};
     
-    println!("Updating Zircon...");
+    println!("Updating Zircon to '{}'...", reference);
     
     let zircon_source = paths::zircon_source_dir();
     
@@ -45,9 +53,9 @@ fn cmd_self_update() -> Result<(), Box<dyn Error>> {
         &zircon_source,
     )?;
     
-    // Fetch and checkout main
+    // Fetch and checkout the specified reference
     git_utils::fetch(&repo)?;
-    git_utils::checkout_ref(&repo, "main")?;
+    git_utils::checkout_ref(&repo, reference)?;
     
     println!("Building Zircon...");
     build::check_cargo()?;
@@ -78,7 +86,7 @@ fn cmd_self_update() -> Result<(), Box<dyn Error>> {
     let zircon_link = paths::zircon_binary_link();
     paths::create_link(&self_binary, &zircon_link)?;
     
-    println!("✓ Zircon updated successfully!");
+    println!("✓ Zircon updated successfully to '{}'!", reference);
     
     Ok(())
 }

@@ -45,10 +45,16 @@ Download LLVM 20 from [LLVM releases](https://releases.llvm.org/)
 
 ### Bootstrap Installation
 
-Run the bootstrap script to install Zircon:
+Run the bootstrap script to install Zircon (latest main branch):
 
 ```bash
 curl -sSf https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.sh | bash
+```
+
+Or install a specific version:
+
+```bash
+curl -sSf https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.sh | bash -s v0.1.0
 ```
 
 Or manually:
@@ -58,6 +64,10 @@ Or manually:
 mkdir -p ~/.zircon/sources/zirco-lang
 git clone https://github.com/zirco-lang/zircon.git ~/.zircon/sources/zirco-lang/zircon
 cd ~/.zircon/sources/zirco-lang/zircon
+
+# Optionally checkout a specific version
+# git checkout v0.1.0
+
 cargo build --release
 
 # Create symlinks
@@ -180,8 +190,17 @@ zircon prune -y
 
 ### Update Zircon Itself
 
+Update to the latest main branch:
+
 ```bash
 zircon self update
+```
+
+Or update to a specific version:
+
+```bash
+zircon self update v0.1.0
+zircon self update my-feature-branch
 ```
 
 ### Environment Configuration

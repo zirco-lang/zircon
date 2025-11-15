@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Bootstrap script to build and install Zircon
+#
+# Usage: ./bootstrap.sh [refspec]
+#   refspec: Optional git reference (branch, tag, or commit) to checkout
+#            Defaults to 'main' if not specified
 
 set -euo pipefail
 
 ZIRCON_REPO="https://github.com/zirco-lang/zircon.git"
+ZIRCON_REF="${1:-main}"
 
 echo "Checking for Git..."
 if ! command -v git &>/dev/null; then
@@ -32,9 +37,14 @@ cd ~/.zircon/sources/zirco-lang
 
 # Clone the Zircon repository
 echo "Downloading Zircon source code..."
-# TODO: In the future, we may want to do a shallow clone or download a specific release tarball
 git clone "$ZIRCON_REPO" zircon
 cd zircon
+
+# Checkout the specified reference
+if [[ "$ZIRCON_REF" != "main" ]]; then
+    echo "Checking out reference: $ZIRCON_REF"
+    git checkout "$ZIRCON_REF"
+fi
 
 echo "Building Zircon..."
 cargo build --release

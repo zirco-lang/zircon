@@ -42,11 +42,14 @@ impl DispatchCommand for BuildCmd {
         // Get commit SHA for version naming
         let commit_sha = git_utils::get_current_commit_short(&repo)?;
 
-        // Determine version name (use tag if it's a tag, otherwise use ref + commit)
-        let version = if self.reference.starts_with('v') && !self.reference.contains('/') {
-            self.reference
-        } else {
-            format!("{}@{}", self.reference.replace('/', "-"), commit_sha)
+        // Determine reference type and create appropriate version name
+        let ref_type = git_utils::determine_ref_type(&repo, &self.reference);
+        let version = match ref_type {
+            git_utils::RefType::Tag(tag) => tag,
+            git_utils::RefType::Branch(branch) => {
+                format!("{}@{}", branch.replace('/', "-"), commit_sha)
+            }
+            git_utils::RefType::Commit(commit) => format!("commit-{}", commit),
         };
 
         println!("Building version: {}", version);

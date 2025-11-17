@@ -1,13 +1,14 @@
-//! Git operations for managing source repositories
+//! Git operations for repository management
 
-use git2::{FetchOptions, RemoteCallbacks, Repository, build::RepoBuilder};
-use std::path::Path;
+use git2::{build::RepoBuilder, FetchOptions, RemoteCallbacks, Repository};
 
-/// Clone a repository or open if it already exists
-pub fn clone_or_open(url: &str, path: &Path) -> Result<Repository, git2::Error> {
+/// Clone a repository or open an existing one
+pub fn clone_or_open(url: &str, path: &std::path::Path) -> Result<Repository, git2::Error> {
     if path.exists() {
+        // Open existing repository
         Repository::open(path)
     } else {
+        // Clone with progress reporting
         let mut callbacks = RemoteCallbacks::new();
         callbacks.transfer_progress(|stats| {
             if stats.received_objects() == stats.total_objects() {
@@ -126,4 +127,58 @@ pub fn get_current_commit_short(repo: &Repository) -> Result<String, git2::Error
     let commit = head.peel_to_commit()?;
     let oid = commit.id();
     Ok(oid.to_string()[..8].to_string())
+}
+
+/// Reference type for better version naming
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RefType {
+    /// Semantic version tag (e.g., v0.1.0)
+    Tag(String),
+    /// Branch name
+    Branch(String),
+    /// Direct commit SHA
+    Commit(String),
+}
+
+/// Determine the type of reference and get appropriate version name
+pub fn determine_ref_type(repo: &Repository, ref_name: &str) -> RefType {
+    // First, try to find it as a tag
+    let tag_ref = format!("refs/tags/{}", ref_name);
+    if repo.find_reference(&tag_ref).is_ok() {
+        // It's a tag
+        return RefType::Tag(ref_name.to_string());
+    }
+
+    // Try as a branch (local or remote)
+    let local_branch = format!("refs/heads/{}", ref_name);
+    let remote_branch = format!("refs/remotes/origin/{}", ref_name);
+    if repo.find_reference(&local_branch).is_ok()
+        || repo.find_reference(&remote_branch).is_ok()
+    {
+        return RefType::Branch(ref_name.to_string());
+    }
+
+    // Try to parse as commit SHA
+    if let Ok(oid) = git2::Oid::from_str(ref_name) {
+        if repo.find_commit(oid).is_ok() {
+            return RefType::Commit(ref_name[..8.min(ref_name.len())].to_string());
+        }
+    }
+
+    // If we can resolve it via short name, check what it resolves to
+    if let Ok(reference) = repo.resolve_reference_from_short_name(ref_name) {
+        if let Some(ref_name_str) = reference.name() {
+            if ref_name_str.starts_with("refs/tags/") {
+                return RefType::Tag(ref_name.to_string());
+            }
+            if ref_name_str.starts_with("refs/heads/")
+                || ref_name_str.starts_with("refs/remotes/")
+            {
+                return RefType::Branch(ref_name.to_string());
+            }
+        }
+    }
+
+    // Default to treating it as a branch name
+    RefType::Branch(ref_name.to_string())
 }

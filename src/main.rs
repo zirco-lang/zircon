@@ -53,10 +53,13 @@
 mod build;
 mod cli;
 mod cmds;
+mod config;
 mod deps;
 mod git_utils;
 mod installer;
 mod paths;
+mod toolchains;
+mod update_check;
 
 use std::error::Error;
 
@@ -65,6 +68,9 @@ use cli::{Cli, DispatchCommand, ZirconCommand};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
+
+    // Check for updates (non-blocking, best effort)
+    update_check::check_for_updates();
 
     match cli.command {
         ZirconCommand::SelfCmds(self_cmds) => self_cmds.dispatch(),

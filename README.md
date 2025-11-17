@@ -59,7 +59,7 @@ Or install a specific version:
 curl -sSf https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.sh | bash -s v0.1.0
 ```
 
-#### Windows (PowerShell)
+#### Windows (`PowerShell`)
 
 Run the bootstrap script to install Zircon (latest main branch):
 

@@ -1,6 +1,6 @@
 //! Git operations for repository management
 
-use git2::{build::RepoBuilder, FetchOptions, RemoteCallbacks, Repository};
+use git2::{FetchOptions, RemoteCallbacks, Repository, build::RepoBuilder};
 
 /// Clone a repository or open an existing one
 pub fn clone_or_open(url: &str, path: &std::path::Path) -> Result<Repository, git2::Error> {
@@ -152,30 +152,27 @@ pub fn determine_ref_type(repo: &Repository, ref_name: &str) -> RefType {
     // Try as a branch (local or remote)
     let local_branch = format!("refs/heads/{}", ref_name);
     let remote_branch = format!("refs/remotes/origin/{}", ref_name);
-    if repo.find_reference(&local_branch).is_ok()
-        || repo.find_reference(&remote_branch).is_ok()
-    {
+    if repo.find_reference(&local_branch).is_ok() || repo.find_reference(&remote_branch).is_ok() {
         return RefType::Branch(ref_name.to_string());
     }
 
     // Try to parse as commit SHA
-    if let Ok(oid) = git2::Oid::from_str(ref_name) {
-        if repo.find_commit(oid).is_ok() {
-            return RefType::Commit(ref_name[..8.min(ref_name.len())].to_string());
-        }
+    if let Ok(oid) = git2::Oid::from_str(ref_name)
+        && repo.find_commit(oid).is_ok()
+    {
+        // Return short commit hash without "commit-" prefix
+        return RefType::Commit(ref_name[..8.min(ref_name.len())].to_string());
     }
 
     // If we can resolve it via short name, check what it resolves to
-    if let Ok(reference) = repo.resolve_reference_from_short_name(ref_name) {
-        if let Some(ref_name_str) = reference.name() {
-            if ref_name_str.starts_with("refs/tags/") {
-                return RefType::Tag(ref_name.to_string());
-            }
-            if ref_name_str.starts_with("refs/heads/")
-                || ref_name_str.starts_with("refs/remotes/")
-            {
-                return RefType::Branch(ref_name.to_string());
-            }
+    if let Ok(reference) = repo.resolve_reference_from_short_name(ref_name)
+        && let Some(ref_name_str) = reference.name()
+    {
+        if ref_name_str.starts_with("refs/tags/") {
+            return RefType::Tag(ref_name.to_string());
+        }
+        if ref_name_str.starts_with("refs/heads/") || ref_name_str.starts_with("refs/remotes/") {
+            return RefType::Branch(ref_name.to_string());
         }
     }
 

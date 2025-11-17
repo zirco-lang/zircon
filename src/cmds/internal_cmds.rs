@@ -25,8 +25,8 @@ impl DispatchCommand for InternalCmds {
 fn cmd_bootstrap() -> Result<(), Box<dyn Error>> {
     println!("=== Zircon Bootstrap ===\n");
 
-    // Check dependencies
-    deps::warn_dependencies();
+    // Check dependencies - fail if LLVM 20 is missing
+    deps::check_dependencies_strict()?;
 
     // Ensure directories exist
     paths::ensure_directories()?;

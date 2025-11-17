@@ -63,7 +63,7 @@ pub fn get_current_toolchain() -> Result<Option<String>, Box<dyn Error>> {
     let version = target
         .file_name()
         .and_then(|n| n.to_str())
-        .map(|s| s.to_string());
+        .map(std::string::ToString::to_string);
 
     Ok(version)
 }
@@ -78,13 +78,13 @@ pub fn delete_toolchain(version: &str) -> Result<(), Box<dyn Error>> {
     }
 
     // Check if this is the current toolchain
-    if let Some(current) = get_current_toolchain()? {
-        if current == version {
-            return Err(format!(
+    if let Some(current) = get_current_toolchain()?
+        && current == version
+    {
+        return Err(format!(
                 "Cannot delete '{}' because it is the current toolchain.\nSwitch to another toolchain first with 'zircon switch <version>'.",
                 version
             ).into());
-        }
     }
 
     fs::remove_dir_all(&toolchain_dir)?;

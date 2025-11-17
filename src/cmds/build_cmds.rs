@@ -49,7 +49,7 @@ impl DispatchCommand for BuildCmd {
             git_utils::RefType::Branch(branch) => {
                 format!("{}@{}", branch.replace('/', "-"), commit_sha)
             }
-            git_utils::RefType::Commit(commit) => format!("commit-{}", commit),
+            git_utils::RefType::Commit(commit) => commit, // No prefix for commits
         };
 
         println!("Building version: {}", version);

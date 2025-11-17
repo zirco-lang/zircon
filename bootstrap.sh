@@ -27,13 +27,13 @@ if ! command -v rustc &>/dev/null; then
 fi
 echo "Rust found: $(rustc --version)"
 
-if [[ -d ~/.zircon ]]; then
+if [[ -d "$HOME/.zircon" ]]; then
     echo "Removing existing ~/.zircon directory to allow for a fresh install..."
-    rm -rf ~/.zircon
+    rm -rf "$HOME/.zircon"
 fi
 
-mkdir -p ~/.zircon/sources/zirco-lang
-cd ~/.zircon/sources/zirco-lang
+mkdir -p "$HOME/.zircon/sources/zirco-lang"
+cd "$HOME/.zircon/sources/zirco-lang"
 
 # Clone the Zircon repository
 echo "Downloading Zircon source code..."
@@ -50,12 +50,12 @@ echo "Building Zircon..."
 cargo build --release
 
 # Create symlink from self to sources/zirco-lang/zircon
-ln -sf ~/.zircon/sources/zirco-lang/zircon ~/.zircon/self
+ln -sf "$HOME/.zircon/sources/zirco-lang/zircon" "$HOME/.zircon/self"
 
 # Create a symlink to the zircon binary in ~/.zircon/bin
-mkdir -p ~/.zircon/bin
+mkdir -p "$HOME/.zircon/bin"
 # ~/.zircon/bin/zircon is managed by this script. Later there will be other files in ~/.zircon/bin that Zircon itself manages.
-ln -sf ~/.zircon/sources/zirco-lang/zircon/target/release/zircon ~/.zircon/bin/zircon
+ln -sf "$HOME/.zircon/sources/zirco-lang/zircon/target/release/zircon" "$HOME/.zircon/bin/zircon"
 
 # This only adds to PATH for the duration of this script.
 # Users will later be instructed to add this to their shell profile.

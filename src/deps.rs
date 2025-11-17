@@ -101,3 +101,28 @@ pub fn warn_dependencies() {
         }
     }
 }
+
+/// Check dependencies and return error if LLVM 20 is missing (strict mode for bootstrap)
+pub fn check_dependencies_strict() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Checking dependencies...");
+
+    // LLVM is required - fail if not found
+    match check_llvm() {
+        Ok(version) => println!("✓ {} found: {}", config::LLVM_VERSION_DESC, version),
+        Err(e) => {
+            eprintln!("✗ {}", e);
+            return Err(e);
+        }
+    }
+
+    // Clang is recommended but not required
+    match check_clang() {
+        Ok(version) => println!("✓ clang found: {}", version),
+        Err(e) => {
+            eprintln!("⚠ {}", e);
+            eprintln!("  You may encounter build errors without clang.");
+        }
+    }
+
+    Ok(())
+}

@@ -82,33 +82,32 @@ pub fn fetch(repo: &Repository) -> Result<(), git2::Error> {
 }
 
 /// Checkout a specific reference (branch, tag, or commit)
+///
+/// This function checks references in the following order:
+/// 1. Remote branch (refs/remotes/origin/{ref_name}) - ensures we use latest after fetch
+/// 2. Short name resolution (tags, local branches) - handled by git2
+/// 3. Commit SHA - direct object lookup
 pub fn checkout_ref(repo: &Repository, ref_name: &str) -> Result<(), Box<dyn std::error::Error>> {
-    // Try to find the reference
-    let (object, reference) =
-        if let Ok(reference) = repo.resolve_reference_from_short_name(ref_name) {
+    let (object, reference) = {
+        // First, try as a remote branch to ensure we use the latest fetched version.
+        // This is important because resolve_reference_from_short_name prefers local
+        // branches, which may be outdated even after fetching.
+        let remote_ref = format!("refs/remotes/origin/{}", ref_name);
+        if let Ok(reference) = repo.find_reference(&remote_ref) {
+            let object = reference.peel_to_commit()?.into_object();
+            (object, Some(reference))
+        } else if let Ok(reference) = repo.resolve_reference_from_short_name(ref_name) {
+            // Try short name resolution (handles tags, local branches, etc.)
             let object = reference.peel_to_commit()?.into_object();
             (object, Some(reference))
         } else if let Ok(oid) = git2::Oid::from_str(ref_name) {
-            // It might be a commit SHA
+            // Try as a direct commit SHA
             let object = repo.find_object(oid, None)?;
             (object, None)
         } else {
-            // Try as a remote branch
-            let remote_ref = format!("refs/remotes/origin/{}", ref_name);
-            if let Ok(reference) = repo.find_reference(&remote_ref) {
-                let object = reference.peel_to_commit()?.into_object();
-                (object, Some(reference))
-            } else {
-                // Try as a tag
-                let tag_ref = format!("refs/tags/{}", ref_name);
-                if let Ok(reference) = repo.find_reference(&tag_ref) {
-                    let object = reference.peel_to_commit()?.into_object();
-                    (object, Some(reference))
-                } else {
-                    return Err(format!("Could not find reference: {}", ref_name).into());
-                }
-            }
-        };
+            return Err(format!("Could not find reference: {}", ref_name).into());
+        }
+    };
 
     repo.checkout_tree(&object, None)?;
 

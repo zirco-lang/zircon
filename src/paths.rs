@@ -79,6 +79,15 @@ pub fn zrc_binary_link() -> PathBuf {
     bin_dir().join(if cfg!(windows) { "zrc.exe" } else { "zrc" })
 }
 
+/// Get the zircop binary link in root bin
+pub fn zircop_binary_link() -> PathBuf {
+    bin_dir().join(if cfg!(windows) {
+        "zircop.exe"
+    } else {
+        "zircop"
+    })
+}
+
 /// Get the zircon binary link in root bin
 pub fn zircon_binary_link() -> PathBuf {
     bin_dir().join(if cfg!(windows) {
@@ -106,6 +115,15 @@ pub fn toolchain_include_dir(version: &str) -> PathBuf {
 /// Get the zrc binary in a specific toolchain
 pub fn toolchain_zrc_binary(version: &str) -> PathBuf {
     toolchain_bin_dir(version).join(if cfg!(windows) { "zrc.exe" } else { "zrc" })
+}
+
+/// Get the zircop binary in a specific toolchain
+pub fn toolchain_zircop_binary(version: &str) -> PathBuf {
+    toolchain_bin_dir(version).join(if cfg!(windows) {
+        "zircop.exe"
+    } else {
+        "zircop"
+    })
 }
 
 /// Ensure all necessary directories exist

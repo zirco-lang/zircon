@@ -60,6 +60,40 @@ pub fn install_zrc_binary(
     Ok(())
 }
 
+/// Install zircop binary to a toolchain directory if it exists
+/// Returns Ok(true) if zircop was found and installed, Ok(false) if not found
+pub fn install_zircop_binary(
+    source_dir: &Path,
+    toolchain_bin_dir: &Path,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    let binary_name = if cfg!(windows) {
+        "zircop.exe"
+    } else {
+        "zircop"
+    };
+    let src = source_dir.join("target").join("release").join(binary_name);
+    let dst = toolchain_bin_dir.join(binary_name);
+
+    // Check if zircop exists in the build output
+    if !src.exists() {
+        return Ok(false);
+    }
+
+    println!("Installing zircop binary to {}", dst.display());
+    copy_file(&src, &dst)?;
+
+    // Make executable on Unix
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = fs::metadata(&dst)?.permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&dst, perms)?;
+    }
+
+    Ok(true)
+}
+
 /// Install include files to a toolchain directory
 pub fn install_include_files(
     source_dir: &Path,

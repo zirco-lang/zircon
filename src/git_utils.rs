@@ -84,7 +84,7 @@ pub fn fetch(repo: &Repository) -> Result<(), git2::Error> {
 /// Checkout a specific reference (branch, tag, or commit)
 ///
 /// This function checks references in the following order:
-/// 1. Remote branch (refs/remotes/origin/{ref_name}) - ensures we use latest after fetch
+/// 1. Remote branch (`refs/remotes/origin/{ref_name}`) - ensures we use latest after fetch
 /// 2. Short name resolution (tags, local branches) - handled by git2
 /// 3. Commit SHA - direct object lookup
 pub fn checkout_ref(repo: &Repository, ref_name: &str) -> Result<(), Box<dyn std::error::Error>> {

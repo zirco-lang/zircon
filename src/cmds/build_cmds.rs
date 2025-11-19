@@ -71,6 +71,9 @@ impl DispatchCommand for BuildCmd {
         // Install binary
         installer::install_zrc_binary(&source_dir, &toolchain_bin_dir)?;
 
+        // Install zircop binary if it exists
+        let has_zircop = installer::install_zircop_binary(&source_dir, &toolchain_bin_dir)?;
+
         // Install include files
         installer::install_include_files(&source_dir, &toolchain_include_dir)?;
 
@@ -82,6 +85,13 @@ impl DispatchCommand for BuildCmd {
         let zrc_link = paths::zrc_binary_link();
         let zrc_binary = paths::toolchain_zrc_binary(&version);
         paths::create_link(&zrc_binary, &zrc_link)?;
+
+        // Create/update zircop bin link if it exists
+        if has_zircop {
+            let zircop_link = paths::zircop_binary_link();
+            let zircop_binary = paths::toolchain_zircop_binary(&version);
+            paths::create_link(&zircop_binary, &zircop_link)?;
+        }
 
         // Create/update include link
         let include_link = paths::include_dir_link();

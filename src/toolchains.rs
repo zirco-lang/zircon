@@ -63,7 +63,7 @@ pub fn get_current_toolchain() -> Result<Option<String>, Box<dyn Error>> {
     let version = target
         .file_name()
         .and_then(|n| n.to_str())
-        .map(std::string::ToString::to_string);
+        .map(ToString::to_string);
 
     Ok(version)
 }

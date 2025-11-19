@@ -36,6 +36,18 @@ impl DispatchCommand for SwitchCmd {
         let zrc_binary = paths::toolchain_zrc_binary(&self.version);
         paths::create_link(&zrc_binary, &zrc_link)?;
 
+        // Update zircop bin link if it exists in the toolchain
+        let zircop_link = paths::zircop_binary_link();
+        let zircop_binary = paths::toolchain_zircop_binary(&self.version);
+        if zircop_binary.exists() {
+            paths::create_link(&zircop_binary, &zircop_link)?;
+        } else {
+            // Remove zircop link if it exists but the new toolchain doesn't have it
+            if zircop_link.exists() || zircop_link.read_link().is_ok() {
+                std::fs::remove_file(&zircop_link).ok();
+            }
+        }
+
         // Update include link
         let include_link = paths::include_dir_link();
         let toolchain_include_dir = paths::toolchain_include_dir(&self.version);

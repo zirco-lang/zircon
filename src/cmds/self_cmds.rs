@@ -75,16 +75,22 @@ fn cmd_self_update(reference: &str) -> Result<(), Box<dyn Error>> {
         return Err("Failed to build new Zircon binary".into());
     }
 
-    println!("Installing updated binary...");
-    fs::copy(&new_binary, &self_binary)?;
+    // Only copy if source and destination are different paths
+    // If they're the same, the binary is already in place from cargo build
+    if new_binary != self_binary {
+        println!("Installing updated binary...");
+        fs::copy(&new_binary, &self_binary)?;
 
-    // Make executable on Unix
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(&self_binary)?.permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(&self_binary, perms)?;
+        // Make executable on Unix
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = fs::metadata(&self_binary)?.permissions();
+            perms.set_mode(0o755);
+            fs::set_permissions(&self_binary, perms)?;
+        }
+    } else {
+        println!("Binary already in place from build...");
     }
 
     // Update the link in bin

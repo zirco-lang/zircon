@@ -55,13 +55,9 @@ pub fn check_llvm() -> Result<String, Box<dyn std::error::Error>> {
     }
 
     Err(format!(
-        "{} not found. Zirco REQUIRES {} specifically.\n  Install instructions:\n    - macOS (Homebrew): brew install llvm@{}\n    - macOS (MacPorts): sudo port install llvm-{}\n    - Ubuntu/Debian: sudo apt install llvm-{} llvm-{}-dev\n    - Windows: Download from https://releases.llvm.org/",
+        "{} not found. Zirco REQUIRES {} specifically.\n  Consider using `llvmenv` to compile an appropriate version of LLVM.\n  Please note that the LLVM binary distributions are NOT supported due to missing components.",
         config::LLVM_VERSION_DESC,
         config::LLVM_VERSION_DESC,
-        config::REQUIRED_LLVM_VERSION,
-        config::REQUIRED_LLVM_VERSION,
-        config::REQUIRED_LLVM_VERSION,
-        config::REQUIRED_LLVM_VERSION
     )
     .into())
 }

@@ -10,42 +10,45 @@
 
 Zircon is a toolchain installer for the Zirco programming language. It allows you to easily install and manage different versions of the Zirco compiler, libraries, and tools on your system.
 
+## Windows Support
+
+Zircon does NOT support Windows. You must use WSL (Windows Subsystem for Linux) to run Zircon on Windows.
+
 ## Installation
 
 ### Prerequisites
 
 Zircon requires the following dependencies to build and run Zirco:
 
-- **Rust** (install from [rustup.rs](https://rustup.rs/))
-- **LLVM 20** (**REQUIRED** - Zirco only works with LLVM 20.x)
-- **clang** (usually included with LLVM)
-- **Git**
+-   **Rust** (install from [rustup.rs](https://rustup.rs/))
+-   **LLVM 20** (**REQUIRED** - Zirco only works with LLVM 20.x)
+-   **clang** (usually included with LLVM)
+-   **Git**
+-   **zstd, libssl, pkg-config** (for building on Linux)
 
 #### Installing LLVM 20 and clang
 
 **On macOS (Homebrew):**
+
 ```bash
 brew install llvm@20
 ```
 
 **On macOS (MacPorts):**
+
 ```bash
 sudo port install llvm-20
 ```
 
 **On Ubuntu/Debian:**
-```bash
-sudo apt install llvm-20 llvm-20-dev clang
-```
 
-**On Windows:**
-Download LLVM 20 from [LLVM releases](https://releases.llvm.org/)
+```bash
+sudo apt install llvm-20 llvm-20-dev libpolly-20-dev clang-20 build-essential libssl-dev pkg-config libzstd-dev
+```
 
 **Note:** Zirco requires LLVM 20 specifically. Other versions will not work.
 
-### Bootstrap Installation
-
-#### Linux/macOS
+### Bootstrap Installation (Linux/macOS/WSL)
 
 Run the bootstrap script to install Zircon (latest main branch):
 
@@ -57,21 +60,6 @@ Or install a specific version:
 
 ```bash
 curl -sSf https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.sh | bash -s v0.1.0
-```
-
-#### Windows (`PowerShell`)
-
-Run the bootstrap script to install Zircon (latest main branch):
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.ps1 | iex
-```
-
-Or install a specific version:
-
-```powershell
-$script = iwr -useb https://raw.githubusercontent.com/zirco-lang/zircon/main/bootstrap.ps1
-$script.Content | iex -ArgumentList "v0.1.0"
 ```
 
 #### Manual Installation
@@ -118,34 +106,6 @@ Then, load the full environment (including `ZIRCO_INCLUDE_PATH`) by running:
 ```bash
 source <(zircon env)
 ```
-
-#### Windows (`PowerShell`)
-
-Add Zircon to your PATH and load environment variables:
-
-```powershell
-$env:Path = "$env:USERPROFILE\.zircon\bin;$env:Path"
-# Then run:
-iex (zircon env --shell powershell)
-```
-
-To make it permanent, add to your `PowerShell` profile (`$PROFILE`):
-
-```powershell
-$env:Path = "$env:USERPROFILE\.zircon\bin;$env:Path"
-```
-
-#### Windows (CMD)
-
-```cmd
-set PATH=%USERPROFILE%\.zircon\bin;%PATH%
-REM Then run:
-zircon env --shell cmd
-```
-
-**Note:** The `env` command auto-detects your shell on Unix systems. On Windows, it defaults to `PowerShell` if `PSModulePath` is set, otherwise CMD. You can override with `--shell` flag.
-
-The `env` command sets additional environment variables required by zrc, such as the include path for standard library headers.
 
 ## Usage
 
@@ -237,8 +197,9 @@ source <(zircon env)
 ```
 
 This sets:
-- `PATH` to include `~/.zircon/bin`
-- `ZIRCO_INCLUDE_PATH` to point to the current toolchain's include directory
+
+-   `PATH` to include `~/.zircon/bin`
+-   `ZIRCO_INCLUDE_PATH` to point to the current toolchain's include directory
 
 ## Directory Structure
 
@@ -272,11 +233,10 @@ ZIRCON_PREFIX=/opt/zircon zircon build v0.1.0
 ## Platform Support
 
 Zircon is designed to work on:
-- **Linux** ✓
-- **macOS** ✓
-- **Windows** ✓
 
-Windows support includes proper symlink handling (or copies as fallback).
+-   **Linux** ✓
+-   **macOS** ✓
+-   **Windows via WSL** ✓
 
 ## A Note on Stability
 

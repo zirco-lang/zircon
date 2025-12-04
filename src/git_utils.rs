@@ -12,13 +12,13 @@ pub fn clone_or_open(url: &str, path: &std::path::Path) -> Result<Repository, gi
         let mut callbacks = RemoteCallbacks::new();
         callbacks.transfer_progress(|stats| {
             if stats.received_objects() == stats.total_objects() {
-                print!(
+                eprint!(
                     "\rResolving deltas {}/{}",
                     stats.indexed_deltas(),
                     stats.total_deltas()
                 );
             } else if stats.total_objects() > 0 {
-                print!(
+                eprint!(
                     "\rReceived {}/{} objects",
                     stats.received_objects(),
                     stats.total_objects()
@@ -26,16 +26,16 @@ pub fn clone_or_open(url: &str, path: &std::path::Path) -> Result<Repository, gi
             } else {
                 // No progress yet
             }
-            std::io::Write::flush(&mut std::io::stdout()).ok();
+            std::io::Write::flush(&mut std::io::stderr()).ok();
             true
         });
 
         let mut fo = FetchOptions::new();
         fo.remote_callbacks(callbacks);
 
-        println!("Cloning {}...", url);
+        eprintln!("Cloning {}...", url);
         let repo = RepoBuilder::new().fetch_options(fo).clone(url, path)?;
-        println!("\nClone complete");
+        eprintln!("\nClone complete");
         Ok(repo)
     }
 }
@@ -47,13 +47,13 @@ pub fn fetch(repo: &Repository) -> Result<(), git2::Error> {
     let mut callbacks = RemoteCallbacks::new();
     callbacks.transfer_progress(|stats| {
         if stats.received_objects() == stats.total_objects() {
-            print!(
+            eprint!(
                 "\rResolving deltas {}/{}",
                 stats.indexed_deltas(),
                 stats.total_deltas()
             );
         } else if stats.total_objects() > 0 {
-            print!(
+            eprint!(
                 "\rReceived {}/{} objects",
                 stats.received_objects(),
                 stats.total_objects()
@@ -61,14 +61,14 @@ pub fn fetch(repo: &Repository) -> Result<(), git2::Error> {
         } else {
             // No progress yet
         }
-        std::io::Write::flush(&mut std::io::stdout()).ok();
+        std::io::Write::flush(&mut std::io::stderr()).ok();
         true
     });
 
     let mut fo = FetchOptions::new();
     fo.remote_callbacks(callbacks);
 
-    println!("Fetching updates...");
+    eprintln!("Fetching updates...");
     remote.fetch(
         &[
             "refs/heads/*:refs/remotes/origin/*",
@@ -77,7 +77,7 @@ pub fn fetch(repo: &Repository) -> Result<(), git2::Error> {
         Some(&mut fo),
         None,
     )?;
-    println!("\nFetch complete");
+    eprintln!("\nFetch complete");
     Ok(())
 }
 
@@ -116,7 +116,7 @@ pub fn checkout_ref(repo: &Repository, ref_name: &str) -> Result<(), Box<dyn std
         None => repo.set_head_detached(object.id()),
     }?;
 
-    println!("Checked out: {}", ref_name);
+    eprintln!("Checked out: {}", ref_name);
     Ok(())
 }
 

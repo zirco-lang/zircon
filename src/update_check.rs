@@ -58,10 +58,10 @@ fn try_check_for_updates() -> Result<(), Box<dyn std::error::Error>> {
                         if local_oid != remote_oid {
                             // Check if local is ancestor of remote (remote is ahead)
                             if repo.graph_descendant_of(remote_oid, local_oid) == Ok(true) {
-                                println!(
+                                eprintln!(
                                     "💡 Zircon update available! Run 'zircon self update' to update."
                                 );
-                                println!();
+                                eprintln!();
                             }
                         }
                     }

@@ -35,13 +35,8 @@ impl DispatchCommand for EnvCmd {
                     let env_hook_escaped = escape_for_fish(&env_hook);
                     println!("source {};", env_hook_escaped);
                 }
-                "powershell" | "pwsh" => {
-                    // PowerShell doesn't have a direct bash script sourcing equivalent
-                    // Fall back to manual env setup for PowerShell
-                    output_manual_env(&bin_dir, &shell_type);
-                }
-                "cmd" => {
-                    // CMD doesn't support sourcing bash scripts
+                "powershell" | "pwsh" | "cmd" => {
+                    // PowerShell and CMD don't support sourcing bash scripts
                     // Fall back to manual env setup
                     output_manual_env(&bin_dir, &shell_type);
                 }

@@ -97,11 +97,6 @@ pub fn zircon_binary_link() -> PathBuf {
     })
 }
 
-/// Get the include directory link
-pub fn include_dir_link() -> PathBuf {
-    zircon_root().join("include")
-}
-
 /// Get the bin directory in a specific toolchain
 pub fn toolchain_bin_dir(version: &str) -> PathBuf {
     toolchain_dir(version).join("bin")

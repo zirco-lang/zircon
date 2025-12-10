@@ -62,40 +62,55 @@ impl DispatchCommand for BuildCmd {
 
         // Create toolchain directory
         let toolchain_dir = paths::toolchain_dir(&version);
-        let toolchain_bin_dir = paths::toolchain_bin_dir(&version);
-        let toolchain_include_dir = paths::toolchain_include_dir(&version);
+        std::fs::create_dir_all(&toolchain_dir)?;
 
-        std::fs::create_dir_all(&toolchain_bin_dir)?;
-        std::fs::create_dir_all(&toolchain_include_dir)?;
+        // Check if hook/install.sh exists
+        let install_hook = source_dir.join("hook").join("install.sh");
+        if install_hook.exists() {
+            println!("Running install hook...");
+            // Call hook/install.sh with CWD in source_dir and pass TOOLCHAIN_DIR
+            let status = std::process::Command::new("bash")
+                .arg(&install_hook)
+                .current_dir(&source_dir)
+                .env("TOOLCHAIN_DIR", &toolchain_dir)
+                .status()?;
 
-        // Install binary
-        installer::install_zrc_binary(&source_dir, &toolchain_bin_dir)?;
+            if !status.success() {
+                let exit_code = status.code().unwrap_or(-1);
+                return Err(format!("Install hook failed (exit code: {})", exit_code).into());
+            }
+        } else {
+            // Fallback to manual installation for compatibility
+            println!("No install hook found, using fallback installation...");
+            let toolchain_bin_dir = paths::toolchain_bin_dir(&version);
+            let toolchain_include_dir = paths::toolchain_include_dir(&version);
 
-        // Install zircop binary if it exists
-        let has_zircop = installer::install_zircop_binary(&source_dir, &toolchain_bin_dir)?;
+            std::fs::create_dir_all(&toolchain_bin_dir)?;
+            std::fs::create_dir_all(&toolchain_include_dir)?;
 
-        // Install include files
-        installer::install_include_files(&source_dir, &toolchain_include_dir)?;
+            installer::install_zrc_binary(&source_dir, &toolchain_bin_dir)?;
+            installer::install_zircop_binary(&source_dir, &toolchain_bin_dir)?;
+            installer::install_include_files(&source_dir, &toolchain_include_dir)?;
+        }
 
         // Update current symlink
         let current_link = paths::current_toolchain_link();
         paths::create_link(&toolchain_dir, &current_link)?;
 
-        // Create/update bin links
-        let zrc_link = paths::zrc_binary_link();
-        let zrc_binary = paths::toolchain_zrc_binary(&version);
-        paths::create_link(&zrc_binary, &zrc_link)?;
+        // Create/update bin links for zrc and zircop
+        let toolchain_bin_dir = paths::toolchain_bin_dir(&version);
+        let zrc_binary = toolchain_bin_dir.join(if cfg!(windows) { "zrc.exe" } else { "zrc" });
+        let zircop_binary = toolchain_bin_dir.join(if cfg!(windows) { "zircop.exe" } else { "zircop" });
 
-        // Create/update zircop bin link if it exists
-        if has_zircop {
-            let zircop_link = paths::zircop_binary_link();
-            let zircop_binary = paths::toolchain_zircop_binary(&version);
-            paths::create_link(&zircop_binary, &zircop_link)?;
+        if zrc_binary.exists() {
+            let zrc_link = paths::zrc_binary_link();
+            paths::create_link(&zrc_binary, &zrc_link)?;
         }
 
-        // Create/update include link
-        let include_link = paths::include_dir_link();
-        paths::create_link(&toolchain_include_dir, &include_link)?;
+        if zircop_binary.exists() {
+            let zircop_link = paths::zircop_binary_link();
+            paths::create_link(&zircop_binary, &zircop_link)?;
+        }
 
         println!("\n✓ Successfully built and installed zrc {}", version);
         println!("  Toolchain location: {}", toolchain_dir.display());

@@ -48,10 +48,7 @@ impl DispatchCommand for SwitchCmd {
             }
         }
 
-        // Update include link
-        let include_link = paths::include_dir_link();
-        let toolchain_include_dir = paths::toolchain_include_dir(&self.version);
-        paths::create_link(&toolchain_include_dir, &include_link)?;
+        // Note: No longer creating .zircon/include link - use .zircon/toolchains/current/include directly
 
         println!("✓ Switched to toolchain: {}", self.version);
 

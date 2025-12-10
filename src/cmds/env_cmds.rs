@@ -38,12 +38,12 @@ impl DispatchCommand for EnvCmd {
                 "powershell" | "pwsh" => {
                     // PowerShell doesn't have a direct bash script sourcing equivalent
                     // Fall back to manual env setup for PowerShell
-                    output_manual_env(&bin_dir, &shell_type)?;
+                    output_manual_env(&bin_dir, &shell_type);
                 }
                 "cmd" => {
                     // CMD doesn't support sourcing bash scripts
                     // Fall back to manual env setup
-                    output_manual_env(&bin_dir, &shell_type)?;
+                    output_manual_env(&bin_dir, &shell_type);
                 }
                 _ => {
                     // Bash/Zsh/sh - source the env.sh script
@@ -53,7 +53,7 @@ impl DispatchCommand for EnvCmd {
             }
         } else {
             // Fallback to manual environment setup
-            output_manual_env(&bin_dir, &shell_type)?;
+            output_manual_env(&bin_dir, &shell_type);
         }
 
         Ok(())
@@ -61,7 +61,7 @@ impl DispatchCommand for EnvCmd {
 }
 
 /// Output manual environment configuration (fallback)
-fn output_manual_env(bin_dir: &Path, shell_type: &str) -> Result<(), Box<dyn Error>> {
+fn output_manual_env(bin_dir: &Path, shell_type: &str) {
     // Use current toolchain's include directory instead of the old .zircon/include link
     let include_dir = paths::current_toolchain_link().join("include");
 
@@ -100,8 +100,6 @@ fn output_manual_env(bin_dir: &Path, shell_type: &str) -> Result<(), Box<dyn Err
             }
         }
     }
-
-    Ok(())
 }
 
 /// Escape a path for POSIX shells (bash, zsh, sh)

@@ -2,8 +2,7 @@
 
 mod cmd_version;
 
-use std::error::Error;
-use std::fs;
+use std::{error::Error, fs};
 
 use clap::{Parser, Subcommand};
 
@@ -57,7 +56,7 @@ fn cmd_self_update(reference: &str) -> Result<(), Box<dyn Error>> {
 
     println!("Building Zircon...");
     build::check_cargo()?;
-    build::build_zrc(&zircon_source)?; // Reuse the build function, it just runs cargo build --release
+    build::build_rust_project(&zircon_source)?;
 
     // Copy the new binary
     let binary_name = if cfg!(windows) {

@@ -47,6 +47,11 @@ pub fn current_toolchain_link() -> PathBuf {
     toolchains_dir().join("current")
 }
 
+/// Get the bin.sh script path in the current toolchain
+pub fn current_toolchain_bin_sh() -> PathBuf {
+    current_toolchain_link().join("bin.sh")
+}
+
 /// Get the self directory (symlink to zircon source)
 #[allow(dead_code)]
 pub fn self_dir() -> PathBuf {
@@ -74,55 +79,12 @@ pub fn bin_dir() -> PathBuf {
     zircon_root().join("bin")
 }
 
-/// Get the zrc binary link in root bin
-pub fn zrc_binary_link() -> PathBuf {
-    bin_dir().join(if cfg!(windows) { "zrc.exe" } else { "zrc" })
-}
-
-/// Get the zircop binary link in root bin
-pub fn zircop_binary_link() -> PathBuf {
-    bin_dir().join(if cfg!(windows) {
-        "zircop.exe"
-    } else {
-        "zircop"
-    })
-}
-
 /// Get the zircon binary link in root bin
 pub fn zircon_binary_link() -> PathBuf {
     bin_dir().join(if cfg!(windows) {
         "zircon.exe"
     } else {
         "zircon"
-    })
-}
-
-/// Get the include directory link
-pub fn include_dir_link() -> PathBuf {
-    zircon_root().join("include")
-}
-
-/// Get the bin directory in a specific toolchain
-pub fn toolchain_bin_dir(version: &str) -> PathBuf {
-    toolchain_dir(version).join("bin")
-}
-
-/// Get the include directory in a specific toolchain
-pub fn toolchain_include_dir(version: &str) -> PathBuf {
-    toolchain_dir(version).join("include")
-}
-
-/// Get the zrc binary in a specific toolchain
-pub fn toolchain_zrc_binary(version: &str) -> PathBuf {
-    toolchain_bin_dir(version).join(if cfg!(windows) { "zrc.exe" } else { "zrc" })
-}
-
-/// Get the zircop binary in a specific toolchain
-pub fn toolchain_zircop_binary(version: &str) -> PathBuf {
-    toolchain_bin_dir(version).join(if cfg!(windows) {
-        "zircop.exe"
-    } else {
-        "zircop"
     })
 }
 

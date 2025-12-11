@@ -1,10 +1,10 @@
 //! Commands for managing toolchains
 
-use clap::Parser;
 use std::error::Error;
 
-use crate::cli::DispatchCommand;
-use crate::{paths, toolchains};
+use clap::Parser;
+
+use crate::{cli::DispatchCommand, paths, toolchains};
 
 /// Switch to a different installed toolchain version
 #[derive(Parser)]
@@ -30,28 +30,6 @@ impl DispatchCommand for SwitchCmd {
         // Update current symlink
         let current_link = paths::current_toolchain_link();
         paths::create_link(&toolchain_dir, &current_link)?;
-
-        // Update bin links
-        let zrc_link = paths::zrc_binary_link();
-        let zrc_binary = paths::toolchain_zrc_binary(&self.version);
-        paths::create_link(&zrc_binary, &zrc_link)?;
-
-        // Update zircop bin link if it exists in the toolchain
-        let zircop_link = paths::zircop_binary_link();
-        let zircop_binary = paths::toolchain_zircop_binary(&self.version);
-        if zircop_binary.exists() {
-            paths::create_link(&zircop_binary, &zircop_link)?;
-        } else {
-            // Remove zircop link if it exists but the new toolchain doesn't have it
-            if zircop_link.exists() || zircop_link.read_link().is_ok() {
-                std::fs::remove_file(&zircop_link).ok();
-            }
-        }
-
-        // Update include link
-        let include_link = paths::include_dir_link();
-        let toolchain_include_dir = paths::toolchain_include_dir(&self.version);
-        paths::create_link(&toolchain_include_dir, &include_link)?;
 
         println!("✓ Switched to toolchain: {}", self.version);
 

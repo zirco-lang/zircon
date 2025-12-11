@@ -1,11 +1,10 @@
 //! Commands for environment configuration
 
-use clap::Parser;
-use std::error::Error;
-use std::path::Path;
+use std::{error::Error, path::Path};
 
-use crate::cli::DispatchCommand;
-use crate::paths;
+use clap::Parser;
+
+use crate::{cli::DispatchCommand, paths};
 
 /// Output shell environment configuration
 #[derive(Parser)]
@@ -18,7 +17,7 @@ pub struct EnvCmd {
 impl DispatchCommand for EnvCmd {
     fn dispatch(self) -> Result<(), Box<dyn Error>> {
         let bin_dir = paths::bin_dir();
-        let include_dir = paths::include_dir_link();
+        let toolchain_bin_sh = paths::current_toolchain_bin_sh();
 
         // Determine shell type
         let shell_type = self
@@ -30,45 +29,50 @@ impl DispatchCommand for EnvCmd {
                 // Fish shell syntax - use double quotes and escape internal quotes
                 let bin_escaped = escape_for_fish(&bin_dir);
                 println!("set -gx PATH {} $PATH;", bin_escaped);
-                if include_dir.exists() {
-                    let include_escaped = escape_for_fish(&include_dir);
-                    println!("set -gx ZIRCO_INCLUDE_PATH {};", include_escaped);
+                // Source the toolchain's bin.sh if it exists (fish uses source command too)
+                if toolchain_bin_sh.exists() {
+                    let bin_sh_escaped = escape_for_fish(&toolchain_bin_sh);
+                    println!("source {};", bin_sh_escaped);
                 }
             }
             "powershell" | "pwsh" => {
                 // PowerShell syntax - double-quote and escape internal double quotes
                 let bin_escaped = escape_for_powershell(&bin_dir);
                 println!("$env:Path = \"{};$env:Path\";", bin_escaped);
-                if include_dir.exists() {
-                    let include_escaped = escape_for_powershell(&include_dir);
-                    println!("$env:ZIRCO_INCLUDE_PATH = \"{}\";", include_escaped);
+                // Source the toolchain's bin.sh if it exists (PowerShell uses . for sourcing)
+                if toolchain_bin_sh.exists() {
+                    let bin_sh_escaped = escape_for_powershell(&toolchain_bin_sh);
+                    println!(". \"{}\";", bin_sh_escaped);
                 }
             }
             "cmd" => {
                 // Windows CMD syntax - escape percent signs and carets
                 let bin_escaped = escape_for_cmd(&bin_dir);
                 println!("set PATH={};%PATH%", bin_escaped);
-                if include_dir.exists() {
-                    let include_escaped = escape_for_cmd(&include_dir);
-                    println!("set ZIRCO_INCLUDE_PATH={}", include_escaped);
+                // Source the toolchain's bin.sh if it exists (CMD uses call)
+                if toolchain_bin_sh.exists() {
+                    let bin_sh_escaped = escape_for_cmd(&toolchain_bin_sh);
+                    println!("call {}", bin_sh_escaped);
                 }
             }
             "zsh" | "bash" | "sh" => {
                 // Bash/Zsh syntax - use single quotes and escape internal single quotes
                 let bin_escaped = escape_for_posix_shell(&bin_dir);
                 println!("export PATH={}:$PATH;", bin_escaped);
-                if include_dir.exists() {
-                    let include_escaped = escape_for_posix_shell(&include_dir);
-                    println!("export ZIRCO_INCLUDE_PATH={};", include_escaped);
+                // Source the toolchain's bin.sh if it exists
+                if toolchain_bin_sh.exists() {
+                    let bin_sh_escaped = escape_for_posix_shell(&toolchain_bin_sh);
+                    println!("source {};", bin_sh_escaped);
                 }
             }
             _ => {
                 // Default for unknown shells - use POSIX syntax
                 let bin_escaped = escape_for_posix_shell(&bin_dir);
                 println!("export PATH={}:$PATH;", bin_escaped);
-                if include_dir.exists() {
-                    let include_escaped = escape_for_posix_shell(&include_dir);
-                    println!("export ZIRCO_INCLUDE_PATH={};", include_escaped);
+                // Source the toolchain's bin.sh if it exists
+                if toolchain_bin_sh.exists() {
+                    let bin_sh_escaped = escape_for_posix_shell(&toolchain_bin_sh);
+                    println!("source {};", bin_sh_escaped);
                 }
             }
         }
@@ -89,7 +93,8 @@ fn escape_for_posix_shell(path: &Path) -> String {
 /// Uses double quotes or falls back to proper escaping
 fn escape_for_fish(path: &Path) -> String {
     let path_str = path.display().to_string();
-    // For fish, we can use double quotes and escape internal double quotes, backslashes, and dollar signs
+    // For fish, we can use double quotes and escape internal double quotes,
+    // backslashes, and dollar signs
     let escaped = path_str
         .replace('\\', "\\\\")
         .replace('"', "\\\"")

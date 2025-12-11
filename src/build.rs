@@ -1,11 +1,10 @@
-//! Build operations for compiling zrc
+//! Build operations for compiling Rust projects
 
-use std::path::Path;
-use std::process::Command;
+use std::{path::Path, process::Command};
 
-/// Build zrc using cargo
-pub fn build_zrc(source_dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Building zrc (this may take several minutes)...");
+/// Build a Rust project using cargo
+pub fn build_rust_project(source_dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Building (this may take several minutes)...");
 
     let status = Command::new("cargo")
         .arg("build")
@@ -15,7 +14,7 @@ pub fn build_zrc(source_dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
 
     if !status.success() {
         let exit_code = status.code().unwrap_or(-1);
-        return Err(format!("Failed to build zrc (exit code: {})", exit_code).into());
+        return Err(format!("Build failed (exit code: {})", exit_code).into());
     }
 
     println!("Build complete!");

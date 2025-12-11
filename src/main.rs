@@ -56,7 +56,6 @@ mod cmds;
 mod config;
 mod deps;
 mod git_utils;
-mod installer;
 mod paths;
 mod toolchains;
 mod update_check;

@@ -92,7 +92,7 @@ pub fn warn_dependencies() {
     match check_clang() {
         Ok(version) => println!("✓ clang found: {}", version),
         Err(e) => {
-            eprintln!("⚠ {}", e);
+            eprintln!("✗ {}", e);
             eprintln!("  You may encounter build errors without clang.");
         }
     }
@@ -111,12 +111,12 @@ pub fn check_dependencies_strict() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Clang is recommended but not required
+    // Clang is required
     match check_clang() {
         Ok(version) => println!("✓ clang found: {}", version),
         Err(e) => {
-            eprintln!("⚠ {}", e);
-            eprintln!("  You may encounter build errors without clang.");
+            eprintln!("✗ {}", e);
+            return Err(e);
         }
     }
 

@@ -60,26 +60,7 @@ impl DispatchCommand for BuildCmd {
 
         // Execute the hook script from the zrc repo
         // The hook handles building and installing to the toolchain directory
-        let hook_script = source_dir.join("hooks").join("zircon.sh");
-        if !hook_script.exists() {
-            return Err(format!(
-                "Hook script not found at {}. This version of zrc may not support zircon hooks.",
-                hook_script.display()
-            )
-            .into());
-        }
-
-        println!("Running zrc build hook...");
-        let status = Command::new("bash")
-            .arg(&hook_script)
-            .env("ZIRCON_TOOLCHAIN_DIR", &toolchain_dir)
-            .current_dir(&source_dir)
-            .status()?;
-
-        if !status.success() {
-            let exit_code = status.code().unwrap_or(-1);
-            return Err(format!("Hook script failed (exit code: {})", exit_code).into());
-        }
+        run_build_hook(&source_dir, &toolchain_dir)?;
 
         // Update current symlink
         let current_link = paths::current_toolchain_link();
@@ -92,4 +73,83 @@ impl DispatchCommand for BuildCmd {
 
         Ok(())
     }
+}
+
+/// Run the build hook script from the zrc repository
+#[cfg(unix)]
+fn run_build_hook(
+    source_dir: &std::path::Path,
+    toolchain_dir: &std::path::Path,
+) -> Result<(), Box<dyn Error>> {
+    let hook_script = source_dir.join("hooks").join("zircon.sh");
+    if !hook_script.exists() {
+        return Err(format!(
+            "Hook script not found at {}. This version of zrc may not support zircon hooks.",
+            hook_script.display()
+        )
+        .into());
+    }
+
+    println!("Running zrc build hook...");
+    let status = Command::new("bash")
+        .arg(&hook_script)
+        .env("ZIRCON_TOOLCHAIN_DIR", toolchain_dir)
+        .current_dir(source_dir)
+        .status()?;
+
+    if !status.success() {
+        let exit_code = status.code().unwrap_or(-1);
+        return Err(format!("Hook script failed (exit code: {})", exit_code).into());
+    }
+
+    Ok(())
+}
+
+/// Run the build hook script from the zrc repository (Windows)
+#[cfg(windows)]
+fn run_build_hook(
+    source_dir: &std::path::Path,
+    toolchain_dir: &std::path::Path,
+) -> Result<(), Box<dyn Error>> {
+    // Check for PowerShell script first, then batch file
+    let ps_hook = source_dir.join("hooks").join("zircon.ps1");
+    let bat_hook = source_dir.join("hooks").join("zircon.bat");
+
+    if ps_hook.exists() {
+        println!("Running zrc build hook (PowerShell)...");
+        let status = Command::new("powershell")
+            .args(["-ExecutionPolicy", "Bypass", "-File"])
+            .arg(&ps_hook)
+            .env("ZIRCON_TOOLCHAIN_DIR", toolchain_dir)
+            .current_dir(source_dir)
+            .status()?;
+
+        if !status.success() {
+            let exit_code = status.code().unwrap_or(-1);
+            return Err(format!("Hook script failed (exit code: {})", exit_code).into());
+        }
+    } else if bat_hook.exists() {
+        println!("Running zrc build hook (batch)...");
+        let status = Command::new("cmd")
+            .args(["/C"])
+            .arg(&bat_hook)
+            .env("ZIRCON_TOOLCHAIN_DIR", toolchain_dir)
+            .current_dir(source_dir)
+            .status()?;
+
+        if !status.success() {
+            let exit_code = status.code().unwrap_or(-1);
+            return Err(format!("Hook script failed (exit code: {})", exit_code).into());
+        }
+    } else {
+        return Err(format!(
+            "No Windows hook script found. Expected {} or {}.\n\
+             This version of zrc may not support Windows builds via zircon hooks.",
+            ps_hook.display(),
+            bat_hook.display()
+        )
+        .into());
+    }
+
+    Ok(())
 }

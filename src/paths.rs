@@ -52,6 +52,16 @@ pub fn current_toolchain_bin_sh() -> PathBuf {
     current_toolchain_link().join("bin.sh")
 }
 
+/// Get the bin.ps1 script path in the current toolchain (for `PowerShell`)
+pub fn current_toolchain_bin_ps1() -> PathBuf {
+    current_toolchain_link().join("bin.ps1")
+}
+
+/// Get the bin.bat script path in the current toolchain (for CMD)
+pub fn current_toolchain_bin_bat() -> PathBuf {
+    current_toolchain_link().join("bin.bat")
+}
+
 /// Get the self directory (symlink to zircon source)
 #[allow(dead_code)]
 pub fn self_dir() -> PathBuf {

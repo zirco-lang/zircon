@@ -117,6 +117,8 @@ fn run_build_hook(
 
     if ps_hook.exists() {
         println!("Running zrc build hook (PowerShell)...");
+        // Use Bypass to run local scripts regardless of system execution policy.
+        // This is safe because the script is part of the zrc repo the user cloned.
         let status = Command::new("powershell")
             .args(["-ExecutionPolicy", "Bypass", "-File"])
             .arg(&ps_hook)
@@ -143,7 +145,7 @@ fn run_build_hook(
         }
     } else {
         return Err(format!(
-            "No Windows hook script found. Expected {} or {}.\n\
+            "No Windows hook script found at {} or {}. \
              This version of zrc may not support Windows builds via zircon hooks.",
             ps_hook.display(),
             bat_hook.display()

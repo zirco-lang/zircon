@@ -28,7 +28,7 @@ impl DispatchCommand for EnvCmd {
                 // Fish shell syntax - use double quotes and escape internal quotes
                 let bin_escaped = escape_for_fish(&bin_dir);
                 println!("set -gx PATH {} $PATH;", bin_escaped);
-                // Source the toolchain's bin.sh if it exists (fish uses source command too)
+                // Source the toolchain's bin.sh if it exists
                 let toolchain_bin_sh = paths::current_toolchain_bin_sh();
                 if toolchain_bin_sh.exists() {
                     let bin_sh_escaped = escape_for_fish(&toolchain_bin_sh);

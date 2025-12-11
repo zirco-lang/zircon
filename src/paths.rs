@@ -47,19 +47,19 @@ pub fn current_toolchain_link() -> PathBuf {
     toolchains_dir().join("current")
 }
 
-/// Get the bin.sh script path in the current toolchain
-pub fn current_toolchain_bin_sh() -> PathBuf {
-    current_toolchain_link().join("bin.sh")
+/// Get the env.sh script path in the current toolchain
+pub fn current_toolchain_env_sh() -> PathBuf {
+    current_toolchain_link().join("env.sh")
 }
 
-/// Get the bin.ps1 script path in the current toolchain (for `PowerShell`)
-pub fn current_toolchain_bin_ps1() -> PathBuf {
-    current_toolchain_link().join("bin.ps1")
+/// Get the env.ps1 script path in the current toolchain (for `PowerShell`)
+pub fn current_toolchain_env_ps1() -> PathBuf {
+    current_toolchain_link().join("env.ps1")
 }
 
-/// Get the bin.bat script path in the current toolchain (for CMD)
-pub fn current_toolchain_bin_bat() -> PathBuf {
-    current_toolchain_link().join("bin.bat")
+/// Get the env.bat script path in the current toolchain (for CMD)
+pub fn current_toolchain_env_bat() -> PathBuf {
+    current_toolchain_link().join("env.bat")
 }
 
 /// Get the self directory (symlink to zircon source)

@@ -78,27 +78,7 @@ pub fn check_clang() -> Result<String, Box<dyn std::error::Error>> {
     Err("clang not found. Please install clang".into())
 }
 
-/// Warn about missing dependencies but don't fail
-pub fn warn_dependencies() {
-    println!("Checking dependencies...");
-
-    match check_llvm() {
-        Ok(version) => println!("✓ {} found: {}", config::LLVM_VERSION_DESC, version),
-        Err(e) => {
-            eprintln!("✗ {}", e);
-        }
-    }
-
-    match check_clang() {
-        Ok(version) => println!("✓ clang found: {}", version),
-        Err(e) => {
-            eprintln!("✗ {}", e);
-            eprintln!("  You may encounter build errors without clang.");
-        }
-    }
-}
-
-/// Check dependencies and return error if LLVM 20 is missing (strict mode for bootstrap)
+/// Check dependencies and return error if LLVM 20 or clang is missing (strict mode for bootstrap and build)
 pub fn check_dependencies_strict() -> Result<(), Box<dyn std::error::Error>> {
     println!("Checking dependencies...");
 

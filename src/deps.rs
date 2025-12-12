@@ -64,15 +64,37 @@ pub fn check_llvm() -> Result<String, Box<dyn std::error::Error>> {
 
 /// Check if clang is installed
 pub fn check_clang() -> Result<String, Box<dyn std::error::Error>> {
-    let output = Command::new("clang").arg("--version").output();
+    // List of possible clang command names to try
+    let clang_candidates = [
+        // Direct command
+        "clang",
+        // Version-suffixed (common on Ubuntu/Debian)
+        &format!("clang-{}", config::REQUIRED_LLVM_VERSION),
+        // Homebrew paths (Intel Mac)
+        &format!(
+            "/usr/local/opt/llvm@{}/bin/clang",
+            config::REQUIRED_LLVM_VERSION
+        ),
+        "/usr/local/opt/llvm/bin/clang",
+        // Homebrew paths (Apple Silicon Mac)
+        &format!(
+            "/opt/homebrew/opt/llvm@{}/bin/clang",
+            config::REQUIRED_LLVM_VERSION
+        ),
+        "/opt/homebrew/opt/llvm/bin/clang",
+    ];
 
-    if let Ok(output) = output
-        && output.status.success()
-    {
-        let version = String::from_utf8_lossy(&output.stdout);
-        // Extract just the version line
-        let version_line = version.lines().next().unwrap_or("unknown");
-        return Ok(version_line.to_string());
+    for cmd in &clang_candidates {
+        let output = Command::new(cmd).arg("--version").output();
+
+        if let Ok(output) = output
+            && output.status.success()
+        {
+            let version = String::from_utf8_lossy(&output.stdout);
+            // Extract just the version line
+            let version_line = version.lines().next().unwrap_or("unknown");
+            return Ok(version_line.to_string());
+        }
     }
 
     Err("clang not found. Please install clang".into())

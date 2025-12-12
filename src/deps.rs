@@ -62,7 +62,7 @@ pub fn check_llvm() -> Result<String, Box<dyn std::error::Error>> {
     .into())
 }
 
-/// Check if clang is installed
+/// Check if clang is installed (REQUIRED for Zirco)
 pub fn check_clang() -> Result<String, Box<dyn std::error::Error>> {
     // List of possible clang command names to try
     let clang_candidates = [
@@ -70,6 +70,8 @@ pub fn check_clang() -> Result<String, Box<dyn std::error::Error>> {
         "clang",
         // Version-suffixed (common on Ubuntu/Debian)
         &format!("clang-{}", config::REQUIRED_LLVM_VERSION),
+        // MacPorts prefix
+        &format!("clang-mp-{}", config::REQUIRED_LLVM_VERSION),
         // Homebrew paths (Intel Mac)
         &format!(
             "/usr/local/opt/llvm@{}/bin/clang",

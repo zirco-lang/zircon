@@ -62,43 +62,47 @@ pub fn check_llvm() -> Result<String, Box<dyn std::error::Error>> {
     .into())
 }
 
-/// Check if clang is installed
+/// Check if clang is installed (REQUIRED for Zirco)
 pub fn check_clang() -> Result<String, Box<dyn std::error::Error>> {
-    let output = Command::new("clang").arg("--version").output();
+    // List of possible clang command names to try
+    let clang_candidates = [
+        // Direct command
+        "clang",
+        // Version-suffixed (common on Ubuntu/Debian)
+        &format!("clang-{}", config::REQUIRED_LLVM_VERSION),
+        // MacPorts prefix
+        &format!("clang-mp-{}", config::REQUIRED_LLVM_VERSION),
+        // Homebrew paths (Intel Mac)
+        &format!(
+            "/usr/local/opt/llvm@{}/bin/clang",
+            config::REQUIRED_LLVM_VERSION
+        ),
+        "/usr/local/opt/llvm/bin/clang",
+        // Homebrew paths (Apple Silicon Mac)
+        &format!(
+            "/opt/homebrew/opt/llvm@{}/bin/clang",
+            config::REQUIRED_LLVM_VERSION
+        ),
+        "/opt/homebrew/opt/llvm/bin/clang",
+    ];
 
-    if let Ok(output) = output
-        && output.status.success()
-    {
-        let version = String::from_utf8_lossy(&output.stdout);
-        // Extract just the version line
-        let version_line = version.lines().next().unwrap_or("unknown");
-        return Ok(version_line.to_string());
+    for cmd in &clang_candidates {
+        let output = Command::new(cmd).arg("--version").output();
+
+        if let Ok(output) = output
+            && output.status.success()
+        {
+            let version = String::from_utf8_lossy(&output.stdout);
+            // Extract just the version line
+            let version_line = version.lines().next().unwrap_or("unknown");
+            return Ok(version_line.to_string());
+        }
     }
 
     Err("clang not found. Please install clang".into())
 }
 
-/// Warn about missing dependencies but don't fail
-pub fn warn_dependencies() {
-    println!("Checking dependencies...");
-
-    match check_llvm() {
-        Ok(version) => println!("✓ {} found: {}", config::LLVM_VERSION_DESC, version),
-        Err(e) => {
-            eprintln!("✗ {}", e);
-        }
-    }
-
-    match check_clang() {
-        Ok(version) => println!("✓ clang found: {}", version),
-        Err(e) => {
-            eprintln!("⚠ {}", e);
-            eprintln!("  You may encounter build errors without clang.");
-        }
-    }
-}
-
-/// Check dependencies and return error if LLVM 20 is missing (strict mode for bootstrap)
+/// Check dependencies and return error if LLVM 20 or clang is missing (strict mode for bootstrap and build)
 pub fn check_dependencies_strict() -> Result<(), Box<dyn std::error::Error>> {
     println!("Checking dependencies...");
 
@@ -111,12 +115,12 @@ pub fn check_dependencies_strict() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Clang is recommended but not required
+    // Clang is required
     match check_clang() {
         Ok(version) => println!("✓ clang found: {}", version),
         Err(e) => {
-            eprintln!("⚠ {}", e);
-            eprintln!("  You may encounter build errors without clang.");
+            eprintln!("✗ {}", e);
+            return Err(e);
         }
     }
 

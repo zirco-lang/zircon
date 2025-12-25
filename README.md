@@ -109,6 +109,28 @@ source <(zircon env)
 
 ## Usage
 
+### Install a Pre-Built Zirco Toolchain
+
+For faster installation, you can download and install pre-built binaries from GitHub releases:
+
+```bash
+zircon install nightly
+```
+
+Install a specific release version:
+
+```bash
+zircon install v0.1.0
+```
+
+Install from a custom repository:
+
+```bash
+zircon install --zrc-repo myorg/zrc nightly
+```
+
+**Note:** Pre-built binaries are only available for certain platforms (Linux x64/ARM64, macOS x64/ARM64). If your platform is not supported, use `zircon build` instead.
+
 ### Build a Zirco Toolchain
 
 Build the latest version from the main branch:

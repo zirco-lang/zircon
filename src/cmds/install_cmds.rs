@@ -67,9 +67,9 @@ fn install_nightly() -> Result<(), Box<dyn Error>> {
     // Import the toolchain
     let result = import_cmd.dispatch();
 
-    // Clean up the temporary file
-    if temp_file.exists() {
-        drop(std::fs::remove_file(&temp_file));
+    // Clean up the temporary file (best effort)
+    if temp_file.exists() && let Err(e) = std::fs::remove_file(&temp_file) {
+        eprintln!("Warning: Failed to clean up temporary file: {}", e);
     }
 
     result
@@ -95,11 +95,13 @@ fn detect_platform_and_arch() -> Result<(String, String), Box<dyn Error>> {
     let architecture = match arch {
         "x86_64" => "x64",
         "aarch64" => "arm64",
-        _ => return Err(format!(
-            "Unsupported architecture: {}. Only x86_64 (x64) and aarch64 (arm64) are supported.",
-            arch
-        )
-        .into()),
+        _ => {
+            return Err(format!(
+                "Unsupported architecture: {}. Only x86_64 (x64) and aarch64 (arm64) are supported.",
+                arch
+            )
+            .into());
+        }
     };
 
     Ok((platform.to_string(), architecture.to_string()))

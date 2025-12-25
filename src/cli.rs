@@ -33,6 +33,9 @@ pub enum ZirconCommand {
     /// Build a specific version of zrc
     Build(build_cmds::BuildCmd),
 
+    /// Import a toolchain from a tarball
+    Import(toolchain_cmds::ImportCmd),
+
     /// Switch to a different toolchain version
     Switch(toolchain_cmds::SwitchCmd),
 

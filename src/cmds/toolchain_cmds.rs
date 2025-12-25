@@ -1,8 +1,12 @@
 //! Commands for managing toolchains
 
 use std::error::Error;
+use std::fs::File;
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
+use flate2::read::GzDecoder;
+use tar::Archive;
 
 use crate::{cli::DispatchCommand, paths, toolchains};
 
@@ -35,6 +39,149 @@ impl DispatchCommand for SwitchCmd {
 
         Ok(())
     }
+}
+
+/// Import a toolchain from a tarball
+#[derive(Parser)]
+pub struct ImportCmd {
+    /// Path to the tarball (.tar.gz or .tar) containing the toolchain
+    pub tarball: PathBuf,
+
+    /// Name for the imported toolchain (defaults to tarball filename without extension)
+    #[arg(short, long)]
+    pub name: Option<String>,
+
+    /// Set as current toolchain after import
+    #[arg(short = 's', long)]
+    pub set_current: bool,
+}
+
+impl DispatchCommand for ImportCmd {
+    fn dispatch(self) -> Result<(), Box<dyn Error>> {
+        // Verify tarball exists
+        if !self.tarball.exists() {
+            return Err(format!(
+                "Tarball not found: {}",
+                self.tarball.display()
+            )
+            .into());
+        }
+
+        // Determine version name
+        let version = if let Some(name) = self.name {
+            name
+        } else {
+            // Extract name from tarball filename
+            extract_version_from_filename(&self.tarball)?
+        };
+
+        println!("Importing toolchain: {}", version);
+
+        // Check if toolchain already exists
+        if toolchains::toolchain_exists(&version) {
+            return Err(format!(
+                "Toolchain '{}' already exists.\nUse 'zircon delete {}' to remove it first.",
+                version, version
+            )
+            .into());
+        }
+
+        // Ensure directories exist
+        paths::ensure_directories()?;
+
+        // Create temporary extraction directory
+        let toolchain_dir = paths::toolchain_dir(&version);
+        std::fs::create_dir_all(&toolchain_dir)?;
+
+        // Extract tarball
+        println!("Extracting tarball...");
+        extract_tarball(&self.tarball, &toolchain_dir)?;
+
+        // Validate toolchain structure
+        validate_toolchain_structure(&toolchain_dir)?;
+
+        println!("✓ Successfully imported toolchain: {}", version);
+        println!("  Toolchain location: {}", toolchain_dir.display());
+
+        // Set as current if requested
+        if self.set_current {
+            let current_link = paths::current_toolchain_link();
+            paths::create_link(&toolchain_dir, &current_link)?;
+            println!("✓ Set as current toolchain");
+        }
+
+        println!("\nTo use this toolchain, run:");
+        if !self.set_current {
+            println!("  zircon switch {}", version);
+        }
+        println!("  source <(zircon env)");
+
+        Ok(())
+    }
+}
+
+/// Extract version name from tarball filename
+fn extract_version_from_filename(path: &Path) -> Result<String, Box<dyn Error>> {
+    let filename = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or("Invalid tarball filename")?;
+
+    // Remove common extensions
+    let name = filename
+        .trim_end_matches(".tar.gz")
+        .trim_end_matches(".tgz")
+        .trim_end_matches(".tar");
+
+    if name.is_empty() {
+        return Err("Could not determine version name from tarball filename".into());
+    }
+
+    Ok(name.to_string())
+}
+
+/// Extract tarball to destination directory
+fn extract_tarball(tarball_path: &Path, dest_dir: &Path) -> Result<(), Box<dyn Error>> {
+    let file = File::open(tarball_path)?;
+
+    // Check if it's gzipped
+    let is_gzipped = tarball_path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e == "gz" || e == "tgz")
+        .unwrap_or(false);
+
+    if is_gzipped {
+        let decoder = GzDecoder::new(file);
+        let mut archive = Archive::new(decoder);
+        archive.unpack(dest_dir)?;
+    } else {
+        let mut archive = Archive::new(file);
+        archive.unpack(dest_dir)?;
+    }
+
+    Ok(())
+}
+
+/// Validate that the extracted toolchain has the expected structure
+fn validate_toolchain_structure(toolchain_dir: &Path) -> Result<(), Box<dyn Error>> {
+    // Check for bin directory
+    let bin_dir = toolchain_dir.join("bin");
+    if !bin_dir.exists() || !bin_dir.is_dir() {
+        return Err(format!(
+            "Invalid toolchain structure: missing 'bin' directory at {}",
+            bin_dir.display()
+        )
+        .into());
+    }
+
+    // Check for include directory (optional but expected)
+    let include_dir = toolchain_dir.join("include");
+    if !include_dir.exists() {
+        eprintln!("Warning: 'include' directory not found in toolchain");
+    }
+
+    Ok(())
 }
 
 /// List installed toolchains

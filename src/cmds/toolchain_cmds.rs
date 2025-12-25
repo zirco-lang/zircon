@@ -2,11 +2,13 @@
 
 use std::error::Error;
 use std::fs::File;
+use std::io;
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use flate2::read::GzDecoder;
 use tar::Archive;
+use zip::ZipArchive;
 
 use crate::{cli::DispatchCommand, paths, toolchains};
 
@@ -41,13 +43,14 @@ impl DispatchCommand for SwitchCmd {
     }
 }
 
-/// Import a toolchain from a tarball
+/// Import a toolchain from an archive file
 #[derive(Parser)]
+#[command(about = "Import a toolchain from an archive (.tar.gz, .tar, or .zip)")]
 pub struct ImportCmd {
-    /// Path to the tarball (.tar.gz or .tar) containing the toolchain
-    pub tarball: PathBuf,
+    /// Path to the archive (.tar.gz, .tar, or .zip) containing the toolchain
+    pub archive: PathBuf,
 
-    /// Name for the imported toolchain (defaults to tarball filename without extension)
+    /// Name for the imported toolchain (defaults to archive filename without extension)
     #[arg(short, long)]
     pub name: Option<String>,
 
@@ -58,11 +61,11 @@ pub struct ImportCmd {
 
 impl DispatchCommand for ImportCmd {
     fn dispatch(self) -> Result<(), Box<dyn Error>> {
-        // Verify tarball exists
-        if !self.tarball.exists() {
+        // Verify archive exists
+        if !self.archive.exists() {
             return Err(format!(
-                "Tarball not found: {}",
-                self.tarball.display()
+                "Archive not found: {}",
+                self.archive.display()
             )
             .into());
         }
@@ -71,8 +74,8 @@ impl DispatchCommand for ImportCmd {
         let version = if let Some(name) = self.name {
             name
         } else {
-            // Extract name from tarball filename
-            extract_version_from_filename(&self.tarball)?
+            // Extract name from archive filename
+            extract_version_from_filename(&self.archive)?
         };
 
         println!("Importing toolchain: {}", version);
@@ -93,9 +96,9 @@ impl DispatchCommand for ImportCmd {
         let toolchain_dir = paths::toolchain_dir(&version);
         std::fs::create_dir_all(&toolchain_dir)?;
 
-        // Extract tarball
-        println!("Extracting tarball...");
-        extract_tarball(&self.tarball, &toolchain_dir)?;
+        // Extract archive
+        println!("Extracting archive...");
+        extract_archive(&self.archive, &toolchain_dir)?;
 
         // Validate toolchain structure
         validate_toolchain_structure(&toolchain_dir)?;
@@ -120,44 +123,98 @@ impl DispatchCommand for ImportCmd {
     }
 }
 
-/// Extract version name from tarball filename
+/// Extract version name from archive filename
 fn extract_version_from_filename(path: &Path) -> Result<String, Box<dyn Error>> {
     let filename = path
         .file_name()
         .and_then(|n| n.to_str())
-        .ok_or("Invalid tarball filename")?;
+        .ok_or("Invalid archive filename")?;
 
     // Remove common extensions
     let name = filename
         .trim_end_matches(".tar.gz")
         .trim_end_matches(".tgz")
-        .trim_end_matches(".tar");
+        .trim_end_matches(".tar")
+        .trim_end_matches(".zip");
 
     if name.is_empty() {
-        return Err("Could not determine version name from tarball filename".into());
+        return Err("Could not determine version name from archive filename".into());
     }
 
     Ok(name.to_string())
 }
 
-/// Extract tarball to destination directory
-fn extract_tarball(tarball_path: &Path, dest_dir: &Path) -> Result<(), Box<dyn Error>> {
-    let file = File::open(tarball_path)?;
-
-    // Check if it's gzipped
-    let is_gzipped = tarball_path
+/// Extract archive to destination directory
+fn extract_archive(archive_path: &Path, dest_dir: &Path) -> Result<(), Box<dyn Error>> {
+    // Determine archive type by extension
+    let extension = archive_path
         .extension()
         .and_then(|e| e.to_str())
-        .map(|e| e == "gz" || e == "tgz")
-        .unwrap_or(false);
+        .unwrap_or("");
 
-    if is_gzipped {
-        let decoder = GzDecoder::new(file);
-        let mut archive = Archive::new(decoder);
-        archive.unpack(dest_dir)?;
-    } else {
-        let mut archive = Archive::new(file);
-        archive.unpack(dest_dir)?;
+    match extension {
+        "zip" => extract_zip(archive_path, dest_dir)?,
+        "gz" | "tgz" => extract_tar_gz(archive_path, dest_dir)?,
+        "tar" => extract_tar(archive_path, dest_dir)?,
+        _ => {
+            return Err(format!(
+                "Unsupported archive format: '{}'. Supported formats: .tar.gz, .tgz, .tar, .zip",
+                extension
+            )
+            .into())
+        }
+    }
+
+    Ok(())
+}
+
+/// Extract gzipped tarball
+fn extract_tar_gz(tarball_path: &Path, dest_dir: &Path) -> Result<(), Box<dyn Error>> {
+    let file = File::open(tarball_path)?;
+    let decoder = GzDecoder::new(file);
+    let mut archive = Archive::new(decoder);
+    archive.unpack(dest_dir)?;
+    Ok(())
+}
+
+/// Extract plain tarball
+fn extract_tar(tarball_path: &Path, dest_dir: &Path) -> Result<(), Box<dyn Error>> {
+    let file = File::open(tarball_path)?;
+    let mut archive = Archive::new(file);
+    archive.unpack(dest_dir)?;
+    Ok(())
+}
+
+/// Extract zip file
+fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<(), Box<dyn Error>> {
+    let file = File::open(zip_path)?;
+    let mut archive = ZipArchive::new(file)?;
+
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let outpath = match file.enclosed_name() {
+            Some(path) => dest_dir.join(path),
+            None => continue,
+        };
+
+        if file.name().ends_with('/') {
+            std::fs::create_dir_all(&outpath)?;
+        } else {
+            if let Some(parent) = outpath.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            let mut outfile = File::create(&outpath)?;
+            io::copy(&mut file, &mut outfile)?;
+        }
+
+        // Preserve Unix permissions on Unix systems
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Some(mode) = file.unix_mode() {
+                std::fs::set_permissions(&outpath, std::fs::Permissions::from_mode(mode))?;
+            }
+        }
     }
 
     Ok(())
@@ -257,7 +314,7 @@ impl DispatchCommand for PruneCmd {
         if !self.yes {
             println!("\nProceed with deletion? (y/N): ");
             let mut input = String::new();
-            std::io::stdin().read_line(&mut input)?;
+            io::stdin().read_line(&mut input)?;
             let input = input.trim().to_lowercase();
 
             if input != "y" && input != "yes" {

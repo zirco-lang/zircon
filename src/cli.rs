@@ -6,6 +6,7 @@ use clap::{ArgAction, Parser, Subcommand};
 
 use crate::cmds::build_cmds;
 use crate::cmds::env_cmds;
+use crate::cmds::install_cmds;
 use crate::cmds::internal_cmds;
 use crate::cmds::self_cmds;
 use crate::cmds::toolchain_cmds;
@@ -32,6 +33,9 @@ pub enum ZirconCommand {
 
     /// Build a specific version of zrc
     Build(build_cmds::BuildCmd),
+
+    /// Install a pre-built version of zrc
+    Install(install_cmds::InstallCmd),
 
     /// Switch to a different toolchain version
     Switch(toolchain_cmds::SwitchCmd),

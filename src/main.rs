@@ -57,6 +57,7 @@ mod config;
 mod deps;
 mod git_utils;
 mod paths;
+mod platform;
 mod toolchains;
 mod update_check;
 
@@ -74,6 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match cli.command {
         ZirconCommand::SelfCmds(self_cmds) => self_cmds.dispatch(),
         ZirconCommand::Build(build_cmd) => build_cmd.dispatch(),
+        ZirconCommand::Install(install_cmd) => install_cmd.dispatch(),
         ZirconCommand::Switch(switch_cmd) => switch_cmd.dispatch(),
         ZirconCommand::List(list_cmd) => list_cmd.dispatch(),
         ZirconCommand::Delete(delete_cmd) => delete_cmd.dispatch(),

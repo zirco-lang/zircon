@@ -89,7 +89,7 @@ impl DispatchCommand for ImportCmd {
         // Ensure directories exist
         paths::ensure_directories()?;
 
-        // Create temporary extraction directory
+        // Create toolchain directory
         let toolchain_dir = paths::toolchain_dir(&version);
         std::fs::create_dir_all(&toolchain_dir)?;
 

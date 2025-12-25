@@ -63,7 +63,7 @@ impl DispatchCommand for ImportCmd {
             .into());
         }
 
-        // Compute hash of the tarball
+        // Compute hash of the archive
         let hash = compute_archive_hash(&self.archive)?;
         
         // Extract base name from archive filename and append hash

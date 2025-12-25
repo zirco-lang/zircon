@@ -56,16 +56,12 @@ impl DispatchCommand for ImportCmd {
     fn dispatch(self) -> Result<(), Box<dyn Error>> {
         // Verify archive exists
         if !self.archive.exists() {
-            return Err(format!(
-                "Archive not found: {}",
-                self.archive.display()
-            )
-            .into());
+            return Err(format!("Archive not found: {}", self.archive.display()).into());
         }
 
         // Compute hash of the archive
         let hash = compute_archive_hash(&self.archive)?;
-        
+
         // Extract base name from archive filename and append hash
         let base_name = extract_version_from_filename(&self.archive)?;
         let version = format!("{}-{}", base_name, hash);
@@ -167,7 +163,7 @@ fn extract_archive(archive_path: &Path, dest_dir: &Path) -> Result<(), Box<dyn E
                 "Unsupported archive format: '{}'. Supported formats: .tar.gz, .tgz, .tar, .zip",
                 extension
             )
-            .into())
+            .into());
         }
     }
 

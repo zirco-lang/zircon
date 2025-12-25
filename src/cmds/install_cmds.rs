@@ -40,7 +40,7 @@ fn install_nightly() -> Result<(), Box<dyn Error>> {
 
     // Detect platform and architecture
     let (platform, arch) = detect_platform_and_arch()?;
-    
+
     // Construct download URL
     let filename = format!("zrc-{}-{}.tar.gz", platform, arch);
     let url = format!(
@@ -88,20 +88,18 @@ fn detect_platform_and_arch() -> Result<(String, String), Box<dyn Error>> {
                 "Unsupported platform: {}. Only linux and macos are supported.",
                 os
             )
-            .into())
+            .into());
         }
     };
 
     let architecture = match arch {
         "x86_64" => "x64",
         "aarch64" => "arm64",
-        _ => {
-            return Err(format!(
-                "Unsupported architecture: {}. Only x86_64 (x64) and aarch64 (arm64) are supported.",
-                arch
-            )
-            .into())
-        }
+        _ => return Err(format!(
+            "Unsupported architecture: {}. Only x86_64 (x64) and aarch64 (arm64) are supported.",
+            arch
+        )
+        .into()),
     };
 
     Ok((platform.to_string(), architecture.to_string()))

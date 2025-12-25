@@ -23,7 +23,7 @@ pub struct BuildCmd {
 impl DispatchCommand for BuildCmd {
     fn dispatch(self) -> Result<(), Box<dyn Error>> {
         // Check dependencies first
-        deps::warn_dependencies();
+        deps::check_dependencies_strict()?;
 
         // Ensure directories exist
         paths::ensure_directories()?;

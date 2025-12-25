@@ -2,11 +2,12 @@
 
 use std::error::Error;
 use std::fs::File;
-use std::io;
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use flate2::read::GzDecoder;
+use sha2::{Digest, Sha256};
 use tar::Archive;
 use zip::ZipArchive;
 
@@ -49,14 +50,6 @@ impl DispatchCommand for SwitchCmd {
 pub struct ImportCmd {
     /// Path to the archive (.tar.gz, .tar, or .zip) containing the toolchain
     pub archive: PathBuf,
-
-    /// Name for the imported toolchain (defaults to archive filename without extension)
-    #[arg(short, long)]
-    pub name: Option<String>,
-
-    /// Set as current toolchain after import
-    #[arg(short = 's', long)]
-    pub set_current: bool,
 }
 
 impl DispatchCommand for ImportCmd {
@@ -70,13 +63,12 @@ impl DispatchCommand for ImportCmd {
             .into());
         }
 
-        // Determine version name
-        let version = if let Some(name) = self.name {
-            name
-        } else {
-            // Extract name from archive filename
-            extract_version_from_filename(&self.archive)?
-        };
+        // Compute hash of the tarball
+        let hash = compute_archive_hash(&self.archive)?;
+        
+        // Extract base name from archive filename and append hash
+        let base_name = extract_version_from_filename(&self.archive)?;
+        let version = format!("{}-{}", base_name, hash);
 
         println!("Importing toolchain: {}", version);
 
@@ -106,17 +98,12 @@ impl DispatchCommand for ImportCmd {
         println!("✓ Successfully imported toolchain: {}", version);
         println!("  Toolchain location: {}", toolchain_dir.display());
 
-        // Set as current if requested
-        if self.set_current {
-            let current_link = paths::current_toolchain_link();
-            paths::create_link(&toolchain_dir, &current_link)?;
-            println!("✓ Set as current toolchain");
-        }
+        // Always set as current
+        let current_link = paths::current_toolchain_link();
+        paths::create_link(&toolchain_dir, &current_link)?;
+        println!("✓ Set as current toolchain");
 
         println!("\nTo use this toolchain, run:");
-        if !self.set_current {
-            println!("  zircon switch {}", version);
-        }
         println!("  source <(zircon env)");
 
         Ok(())
@@ -142,6 +129,25 @@ fn extract_version_from_filename(path: &Path) -> Result<String, Box<dyn Error>> 
     }
 
     Ok(name.to_string())
+}
+
+/// Compute a short hash of the archive file for uniqueness
+fn compute_archive_hash(path: &Path) -> Result<String, Box<dyn Error>> {
+    let mut file = File::open(path)?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0; 8192];
+
+    loop {
+        let bytes_read = file.read(&mut buffer)?;
+        if bytes_read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..bytes_read]);
+    }
+
+    let result = hasher.finalize();
+    // Return first 8 characters of the hex digest for a "super shortened" hash
+    Ok(format!("{:x}", result)[..8].to_string())
 }
 
 /// Extract archive to destination directory

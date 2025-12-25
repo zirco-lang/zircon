@@ -2,6 +2,7 @@
 
 use std::error::Error;
 use std::path::Path;
+use std::time::Duration;
 
 use clap::Parser;
 use flate2::read::GzDecoder;
@@ -40,8 +41,11 @@ impl DispatchCommand for InstallCmd {
 
         println!("Downloading from: {}", download_url);
 
-        // Download the artifact
-        let response = reqwest::blocking::get(&download_url)?;
+        // Download the artifact with timeout to prevent indefinite hanging
+        let client = reqwest::blocking::Client::builder()
+            .timeout(Duration::from_secs(300)) // 5 minute timeout
+            .build()?;
+        let response = client.get(&download_url).send()?;
 
         if !response.status().is_success() {
             return Err(format!(
@@ -78,13 +82,39 @@ impl DispatchCommand for InstallCmd {
 
         std::fs::create_dir_all(&toolchain_dir)?;
 
-        // Extract the tar.gz archive
+        // Extract the tar.gz archive with security validation
         println!("Extracting archive...");
         let decoder = GzDecoder::new(&*bytes);
         let mut archive = Archive::new(decoder);
         
-        // Extract to toolchain directory
-        archive.unpack(&toolchain_dir)?;
+        // Extract to toolchain directory with path validation to prevent directory traversal
+        for entry in archive.entries()? {
+            let mut entry = entry?;
+            let entry_path = entry.path()?;
+            
+            // Security check: prevent directory traversal attacks (zip slip)
+            if entry_path
+                .components()
+                .any(|c| matches!(c, std::path::Component::ParentDir))
+            {
+                return Err(format!(
+                    "Archive contains invalid path with '..' component: {}",
+                    entry_path.display()
+                )
+                .into());
+            }
+            
+            // Security check: reject absolute paths
+            if entry_path.is_absolute() {
+                return Err(format!(
+                    "Archive contains absolute path: {}",
+                    entry_path.display()
+                )
+                .into());
+            }
+            
+            entry.unpack_in(&toolchain_dir)?;
+        }
 
         println!("✓ Extracted to: {}", toolchain_dir.display());
 

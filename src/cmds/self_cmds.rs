@@ -137,12 +137,12 @@ fn cmd_self_import(archive: &std::path::Path) -> Result<(), Box<dyn Error>> {
     crate::paths::ensure_directories()?;
 
     let self_dir = crate::paths::zircon_root().join("self");
-    
+
     // Remove existing self directory if it exists
     if self_dir.exists() {
         fs::remove_dir_all(&self_dir)?;
     }
-    
+
     // Create self directory
     fs::create_dir_all(&self_dir)?;
 

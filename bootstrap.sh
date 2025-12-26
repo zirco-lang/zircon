@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ZIRCON_REPO="https://github.com/zirco-lang/zircon.git"
-ZIRCON_REF="${1:-main}"
+ZIRCON_REF="${1:-nightly}"
 
 # Function to detect platform and architecture
 detect_platform_arch() {

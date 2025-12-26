@@ -245,61 +245,68 @@ fn extract_self_archive(
     use tar::Archive;
     use zip::ZipArchive;
 
-    // Determine archive type by extension
-    let extension = archive_path
-        .extension()
-        .and_then(|e| e.to_str())
+    // Determine archive type by checking the full filename first
+    let filename = archive_path
+        .file_name()
+        .and_then(|n| n.to_str())
         .unwrap_or("");
 
-    match extension {
-        "zip" => {
-            let file = File::open(archive_path)?;
-            let mut archive = ZipArchive::new(file)?;
+    // Check for multi-part extensions first
+    if filename.ends_with(".tar.gz") || filename.ends_with(".tgz") {
+        let file = File::open(archive_path)?;
+        let decoder = GzDecoder::new(file);
+        let mut archive = Archive::new(decoder);
+        archive.unpack(dest_dir)?;
+    } else {
+        // Fall back to single extension check
+        let extension = archive_path
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("");
 
-            for i in 0..archive.len() {
-                let mut file = archive.by_index(i)?;
-                let outpath = match file.enclosed_name() {
-                    Some(path) => dest_dir.join(path),
-                    None => continue,
-                };
+        match extension {
+            "zip" => {
+                let file = File::open(archive_path)?;
+                let mut archive = ZipArchive::new(file)?;
 
-                if file.name().ends_with('/') {
-                    fs::create_dir_all(&outpath)?;
-                } else {
-                    if let Some(parent) = outpath.parent() {
-                        fs::create_dir_all(parent)?;
+                for i in 0..archive.len() {
+                    let mut file = archive.by_index(i)?;
+                    let outpath = match file.enclosed_name() {
+                        Some(path) => dest_dir.join(path),
+                        None => continue,
+                    };
+
+                    if file.name().ends_with('/') {
+                        fs::create_dir_all(&outpath)?;
+                    } else {
+                        if let Some(parent) = outpath.parent() {
+                            fs::create_dir_all(parent)?;
+                        }
+                        let mut outfile = File::create(&outpath)?;
+                        io::copy(&mut file, &mut outfile)?;
                     }
-                    let mut outfile = File::create(&outpath)?;
-                    io::copy(&mut file, &mut outfile)?;
-                }
 
-                // Preserve Unix permissions on Unix systems
-                #[cfg(unix)]
-                {
-                    use std::os::unix::fs::PermissionsExt;
-                    if let Some(mode) = file.unix_mode() {
-                        fs::set_permissions(&outpath, fs::Permissions::from_mode(mode))?;
+                    // Preserve Unix permissions on Unix systems
+                    #[cfg(unix)]
+                    {
+                        use std::os::unix::fs::PermissionsExt;
+                        if let Some(mode) = file.unix_mode() {
+                            fs::set_permissions(&outpath, fs::Permissions::from_mode(mode))?;
+                        }
                     }
                 }
             }
-        }
-        "gz" | "tgz" => {
-            let file = File::open(archive_path)?;
-            let decoder = GzDecoder::new(file);
-            let mut archive = Archive::new(decoder);
-            archive.unpack(dest_dir)?;
-        }
-        "tar" => {
-            let file = File::open(archive_path)?;
-            let mut archive = Archive::new(file);
-            archive.unpack(dest_dir)?;
-        }
-        _ => {
-            return Err(format!(
-                "Unsupported archive format: '{}'. Supported formats: .tar.gz, .tgz, .tar, .zip",
-                extension
-            )
-            .into());
+            "tar" => {
+                let file = File::open(archive_path)?;
+                let mut archive = Archive::new(file);
+                archive.unpack(dest_dir)?;
+            }
+            _ => {
+                return Err(format!(
+                    "Unsupported archive format. Supported formats: .tar.gz, .tgz, .tar, .zip"
+                )
+                .into());
+            }
         }
     }
 

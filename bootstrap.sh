@@ -16,6 +16,8 @@ ZIRCON_REF="${1:-main}"
 detect_platform_arch() {
     local os
     local arch
+    local platform
+    local architecture
     os=$(uname -s | tr '[:upper:]' '[:lower:]')
     arch=$(uname -m)
     
@@ -66,16 +68,17 @@ try_install_prebuilt() {
     
     echo "Attempting to download prebuilt binary from: $url"
     
-    # Try to download the prebuilt binary
-    local temp_file="/tmp/${filename}"
+    # Try to download the prebuilt binary using a secure temporary file
+    local temp_file
+    temp_file=$(mktemp "/tmp/zircon-${platform_arch}.XXXXXX.tar.gz")
     if curl -fsSL "$url" -o "$temp_file" 2>/dev/null; then
         echo "✓ Prebuilt binary found! Extracting..."
         
         # Create the self directory
-        mkdir -p "$HOME/.zircon/self/bin"
+        mkdir -p "$HOME/.zircon/self"
         
-        # Extract the archive to self directory
-        if tar -xzf "$temp_file" -C "$HOME/.zircon/self" 2>/dev/null; then
+        # Extract the archive to self directory with safety checks
+        if tar -xzf "$temp_file" --one-top-level="$HOME/.zircon/self" --strip-components=1 2>/dev/null; then
             echo "✓ Successfully extracted prebuilt zircon"
             
             # Make the binary executable

@@ -9,11 +9,18 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os:
+                    - ubuntu-24.04
+                    - ubuntu-24.04-arm
+                    - macos-latest
+                    - macos-15-intel
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   # Make sure the actual branch is checked out when running on pull requests
                   ref: ${{ github.head_ref }}
@@ -31,3 +38,132 @@ jobs:
               uses: actions-rs/cargo@v1
               with:
                   command: build
+                  args: --release
+            - name: Prepare artifacts directory
+              run: |
+                  mkdir -p outputs/bin
+                  cp target/release/zircon outputs/bin/
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v6
+              with:
+                  path: outputs
+                  name: zircon-${{ runner.os }}-${{ runner.arch }}-release
+    comment-artifacts:
+        needs: build
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+
+        steps:
+            - name: Comment on PR with artifact links
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      const runId = context.runId;
+                      const repoOwner = context.repo.owner;
+                      const repoName = context.repo.repo;
+                      const artifactUrl = `https://github.com/${repoOwner}/${repoName}/actions/runs/${runId}`;
+
+                      const message = `🚀 **Build Artifacts**
+
+                      Build artifacts have been generated for this PR across multiple platforms.
+
+                      You can download the following artifacts from the [workflow run](${artifactUrl}):
+
+                      - **Linux x64**: \`zircon-Linux-X64-release\`
+                      - **Linux ARM64**: \`zircon-Linux-ARM64-release\`
+                      - **macOS ARM64**: \`zircon-macOS-ARM64-release\`
+                      - **macOS x64**: \`zircon-macOS-X64-release\`
+
+                      If you use the [Zircon toolchain manager](https://github.com/zirco-lang/zircon), you can easily install the built artifacts using these downloaded packages:
+                      \`\`\`bash
+                      zircon self import ./zircon-Linux-X64-release.zip
+                      \`\`\``;
+
+                      // Find existing comment
+                      const comments = await github.rest.issues.listComments({
+                          issue_number: context.issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                      });
+
+                      const botComment = comments.data.find(comment => 
+                          comment.user.type === 'Bot' && 
+                          comment.body.includes('🚀 **Build Artifacts**')
+                      );
+
+                      if (botComment) {
+                          // Update existing comment
+                          await github.rest.issues.updateComment({
+                              comment_id: botComment.id,
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              body: message
+                          });
+                      } else {
+                          // Create new comment
+                          await github.rest.issues.createComment({
+                              issue_number: context.issue.number,
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              body: message
+                          });
+                      }
+    release:
+        # only on commits to main
+        needs: build
+        if: github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Download X86 Linux build artifact
+              uses: actions/download-artifact@v7
+              with:
+                  name: zircon-Linux-X64-release
+                  path: Linux-X64
+            - name: Download ARM64 Linux build artifact
+              uses: actions/download-artifact@v7
+              with:
+                  name: zircon-Linux-ARM64-release
+                  path: Linux-ARM64
+            - name: Download X86 macOS build artifact
+              uses: actions/download-artifact@v7
+              with:
+                  name: zircon-macOS-X64-release
+                  path: macOS-X64
+            - name: Download ARM64 macOS build artifact
+              uses: actions/download-artifact@v7
+              with:
+                  name: zircon-macOS-ARM64-release
+                  path: macOS-ARM64
+            - name: Set executable permissions
+              run: |
+                  chmod +x Linux-X64/bin/zircon
+                  chmod +x Linux-ARM64/bin/zircon
+                  chmod +x macOS-X64/bin/zircon
+                  chmod +x macOS-ARM64/bin/zircon
+            - name: Create tar archives
+              run: |
+                  tar -czf zircon-linux-x64.tar.gz -C Linux-X64 .
+                  tar -czf zircon-linux-arm64.tar.gz -C Linux-ARM64 .
+                  tar -czf zircon-macos-x64.tar.gz -C macOS-X64 .
+                  tar -czf zircon-macos-arm64.tar.gz -C macOS-ARM64 .
+            - name: Update `nightly` release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: nightly
+                  name: Latest Build
+                  body: |
+                      This is an automated build of the Zircon project from the `main` branch.
+
+                      **Commit:** ${{ github.sha }}
+                      **Date:** ${{ github.event.head_commit.timestamp }}
+                  draft: false
+                  prerelease: true
+                  files: |
+                      zircon-linux-x64.tar.gz
+                      zircon-linux-arm64.tar.gz
+                      zircon-macos-x64.tar.gz
+                      zircon-macos-arm64.tar.gz
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

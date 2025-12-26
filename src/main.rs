@@ -74,6 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match cli.command {
         ZirconCommand::SelfCmds(self_cmds) => self_cmds.dispatch(),
         ZirconCommand::Build(build_cmd) => build_cmd.dispatch(),
+        ZirconCommand::Install(install_cmd) => install_cmd.dispatch(),
         ZirconCommand::Import(import_cmd) => import_cmd.dispatch(),
         ZirconCommand::Switch(switch_cmd) => switch_cmd.dispatch(),
         ZirconCommand::List(list_cmd) => list_cmd.dispatch(),

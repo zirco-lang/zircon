@@ -167,19 +167,43 @@ Or skip the confirmation prompt:
 zircon prune -y
 ```
 
-### Update Zircon Itself
+### Manage Zircon Itself
 
-Update to the latest main branch:
+#### Build Zircon from Source
+
+Build Zircon from the latest main branch:
 
 ```bash
-zircon self update
+zircon self build
 ```
 
-Or update to a specific version:
+Or build from a specific version:
 
 ```bash
-zircon self update v0.1.0
-zircon self update my-feature-branch
+zircon self build v0.1.0
+zircon self build my-feature-branch
+```
+
+#### Install Pre-built Zircon Release
+
+Install the latest nightly release:
+
+```bash
+zircon self install
+```
+
+Or install a specific version:
+
+```bash
+zircon self install v0.1.0
+```
+
+#### Import Zircon from Archive
+
+If you have a pre-built archive (e.g., from CI artifacts):
+
+```bash
+zircon self import ./zircon-linux-x64.tar.gz
 ```
 
 ### Environment Configuration

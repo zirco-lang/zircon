@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 use crate::cli::DispatchCommand;
 use crate::cmds::toolchain_cmds;
@@ -14,29 +14,20 @@ use crate::cmds::toolchain_cmds;
 /// Install pre-built toolchains
 #[derive(Parser)]
 pub struct InstallCmd {
-    /// The install subcommand
-    #[command(subcommand)]
-    pub subcommand: InstallSubcommand,
-}
-
-/// Install subcommands
-#[derive(Subcommand)]
-pub enum InstallSubcommand {
-    /// Install the nightly build
-    Nightly,
+    /// The release tag to install (e.g., "nightly", "v0.1.0")
+    #[arg(default_value = "nightly")]
+    pub tag: String,
 }
 
 impl DispatchCommand for InstallCmd {
     fn dispatch(self) -> Result<(), Box<dyn Error>> {
-        match self.subcommand {
-            InstallSubcommand::Nightly => install_nightly(),
-        }
+        install_tag(&self.tag)
     }
 }
 
-/// Install the nightly build from GitHub releases
-fn install_nightly() -> Result<(), Box<dyn Error>> {
-    println!("Installing nightly build...");
+/// Install a pre-built toolchain from GitHub releases
+fn install_tag(tag: &str) -> Result<(), Box<dyn Error>> {
+    println!("Installing {} release...", tag);
 
     // Detect platform and architecture
     let (platform, arch) = detect_platform_and_arch()?;
@@ -44,8 +35,8 @@ fn install_nightly() -> Result<(), Box<dyn Error>> {
     // Construct download URL
     let filename = format!("zrc-{}-{}.tar.gz", platform, arch);
     let url = format!(
-        "https://github.com/zirco-lang/zrc/releases/download/nightly/{}",
-        filename
+        "https://github.com/zirco-lang/zrc/releases/download/{}/{}",
+        tag, filename
     );
 
     println!("Downloading from: {}", url);
@@ -68,7 +59,9 @@ fn install_nightly() -> Result<(), Box<dyn Error>> {
     let result = import_cmd.dispatch();
 
     // Clean up the temporary file (best effort)
-    if temp_file.exists() && let Err(e) = std::fs::remove_file(&temp_file) {
+    if temp_file.exists()
+        && let Err(e) = std::fs::remove_file(&temp_file)
+    {
         eprintln!("Warning: Failed to clean up temporary file: {}", e);
     }
 
@@ -113,7 +106,7 @@ fn download_file(url: &str, dest: &PathBuf) -> Result<(), Box<dyn Error>> {
 
     if !response.status().is_success() {
         return Err(format!(
-            "Failed to download file: HTTP {}. The nightly release may not be available yet.",
+            "Failed to download file: HTTP {}. The release may not be available or may not have pre-built binaries for your platform.",
             response.status()
         )
         .into());

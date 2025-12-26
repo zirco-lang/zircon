@@ -251,8 +251,14 @@ fn extract_self_archive(
         .and_then(|n| n.to_str())
         .unwrap_or("");
 
+    let filename_lower = filename.to_lowercase();
+
     // Check for multi-part extensions first
-    if filename.ends_with(".tar.gz") || filename.to_lowercase().ends_with(".tgz") {
+    if filename_lower.ends_with(".tar.gz")
+        || std::path::Path::new(&filename_lower)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("tgz"))
+    {
         let file = File::open(archive_path)?;
         let decoder = GzDecoder::new(file);
         let mut archive = Archive::new(decoder);

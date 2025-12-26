@@ -304,7 +304,6 @@ fn extract_self_archive(
             _ => {
                 return Err(
                     "Unsupported archive format. Supported formats: .tar.gz, .tgz, .tar, .zip"
-                        .to_string()
                         .into(),
                 );
             }

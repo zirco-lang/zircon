@@ -70,16 +70,22 @@ try_install_prebuilt() {
     
     # Try to download the prebuilt binary using a secure temporary file
     local temp_file
-    temp_file=$(mktemp "/tmp/zircon-${platform_arch}.XXXXXX.tar.gz")
+    temp_file=$(mktemp)
     if curl -fsSL "$url" -o "$temp_file" 2>/dev/null; then
         echo "✓ Prebuilt binary found! Extracting..."
         
-        # Create the self directory
-        mkdir -p "$HOME/.zircon/self"
+        # Create a temporary extraction directory
+        local temp_extract_dir
+        temp_extract_dir=$(mktemp -d)
         
-        # Extract the archive to self directory with safety checks
-        if tar -xzf "$temp_file" --one-top-level="$HOME/.zircon/self" --strip-components=1 2>/dev/null; then
+        # Extract the archive to temporary directory with safety checks
+        if tar -xzf "$temp_file" -C "$temp_extract_dir" 2>/dev/null; then
             echo "✓ Successfully extracted prebuilt zircon"
+            
+            # Move the extracted contents to self directory
+            mkdir -p "$HOME/.zircon"
+            rm -rf "$HOME/.zircon/self"
+            mv "$temp_extract_dir" "$HOME/.zircon/self"
             
             # Make the binary executable
             chmod +x "$HOME/.zircon/self/bin/zircon"
@@ -94,6 +100,7 @@ try_install_prebuilt() {
             return 0
         else
             echo "Failed to extract archive, will build from source"
+            rm -rf "$temp_extract_dir"
             rm -f "$temp_file"
             return 1
         fi

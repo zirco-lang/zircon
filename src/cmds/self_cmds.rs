@@ -137,12 +137,12 @@ fn cmd_self_import(archive: &std::path::Path) -> Result<(), Box<dyn Error>> {
     crate::paths::ensure_directories()?;
 
     let self_dir = crate::paths::zircon_root().join("self");
-    
+
     // Remove existing self directory if it exists
     if self_dir.exists() {
         fs::remove_dir_all(&self_dir)?;
     }
-    
+
     // Create self directory
     fs::create_dir_all(&self_dir)?;
 
@@ -225,10 +225,10 @@ fn cmd_self_install(tag: &str) -> Result<(), Box<dyn Error>> {
     let result = cmd_self_import(&temp_file);
 
     // Clean up the temporary file (best effort)
-    if temp_file.exists() {
-        if let Err(e) = fs::remove_file(&temp_file) {
-            eprintln!("Warning: Failed to clean up temporary file: {}", e);
-        }
+    if temp_file.exists()
+        && let Err(e) = fs::remove_file(&temp_file)
+    {
+        eprintln!("Warning: Failed to clean up temporary file: {}", e);
     }
 
     result
@@ -251,8 +251,14 @@ fn extract_self_archive(
         .and_then(|n| n.to_str())
         .unwrap_or("");
 
+    let filename_lower = filename.to_lowercase();
+
     // Check for multi-part extensions first
-    if filename.ends_with(".tar.gz") || filename.ends_with(".tgz") {
+    if filename_lower.ends_with(".tar.gz")
+        || std::path::Path::new(&filename_lower)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("tgz"))
+    {
         let file = File::open(archive_path)?;
         let decoder = GzDecoder::new(file);
         let mut archive = Archive::new(decoder);
@@ -302,10 +308,10 @@ fn extract_self_archive(
                 archive.unpack(dest_dir)?;
             }
             _ => {
-                return Err(format!(
+                return Err(
                     "Unsupported archive format. Supported formats: .tar.gz, .tgz, .tar, .zip"
-                )
-                .into());
+                        .into(),
+                );
             }
         }
     }

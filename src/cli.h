@@ -6,7 +6,6 @@
 /* Command types */
 typedef enum {
     CMD_SELF,
-    CMD_BUILD,
     CMD_INSTALL,
     CMD_IMPORT,
     CMD_SWITCH,
@@ -38,10 +37,6 @@ typedef struct {
             char* archive;
             char* tag;
         } self_cmd;
-        struct {
-            char* reference;
-            char* repo_url;
-        } build_cmd;
         struct {
             char* tag;
         } install_cmd;

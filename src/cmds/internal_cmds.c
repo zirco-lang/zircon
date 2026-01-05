@@ -27,8 +27,8 @@ static int cmd_bootstrap(void) {
     printf("\n  2. Then load the environment with:\n");
     printf("     source <(zircon env)\n");
     printf("\n  3. Install a zrc version:\n");
-    printf("     zircon build main\n");
-    printf("     zircon build v0.1.0\n");
+    printf("     zircon install nightly\n");
+    printf("     zircon install v0.1.0\n");
     printf("\n  To make these settings permanent, add to your shell profile (~/.bashrc, ~/.zshrc, etc.):\n");
     printf("     echo 'source <(%s/zircon env)' >> ~/.bashrc\n", bin ? bin : "(unknown)");
     SAFE_FREE(bin);

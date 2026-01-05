@@ -15,7 +15,6 @@ SRCS = src/main.c \
        src/build.c \
        src/toolchains.c \
        src/update_check.c \
-       src/cmds/build_cmds.c \
        src/cmds/env_cmds.c \
        src/cmds/install_cmds.c \
        src/cmds/internal_cmds.c \

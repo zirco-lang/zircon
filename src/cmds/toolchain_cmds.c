@@ -9,7 +9,7 @@ int dispatch_switch_command(cli_context_t* ctx) {
     if (!toolchain_exists(ctx->data.switch_cmd.version)) {
         fprintf(stderr, "Toolchain '%s' not found at %s\n", 
                 ctx->data.switch_cmd.version, tc_dir);
-        fprintf(stderr, "Use 'zircon build %s' to install it.\n", 
+        fprintf(stderr, "Use 'zircon install %s' to install it.\n", 
                 ctx->data.switch_cmd.version);
         free(tc_dir);
         return ERR_NOT_FOUND;

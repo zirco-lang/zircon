@@ -126,30 +126,18 @@ source <(zircon env)
 
 ## Usage
 
-### Build a Zirco Toolchain
+### Install a Zirco Toolchain
 
-Build the latest version from the main branch:
+Install the latest nightly release:
 
 ```bash
-zircon build main
+zircon install nightly
 ```
 
-Build a specific version (tag):
+Install a specific version (tag):
 
 ```bash
-zircon build v0.1.0
-```
-
-Build from a specific branch:
-
-```bash
-zircon build feat-145
-```
-
-Build from a custom repository:
-
-```bash
-zircon build --zrc-repo https://github.com/SomeFork/zrc main
+zircon install v0.1.0
 ```
 
 ### Switch Between Toolchains

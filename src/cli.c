@@ -1,5 +1,4 @@
 #include "cli.h"
-#include "cmds/build_cmds.h"
 #include "cmds/env_cmds.h"
 #include "cmds/install_cmds.h"
 #include "cmds/internal_cmds.h"
@@ -7,12 +6,11 @@
 #include "cmds/toolchain_cmds.h"
 
 static void print_usage(const char* prog) {
-    printf("Zircon %s - The Zircon toolchain installer and build tool\n\n", ZIRCON_VERSION);
+    printf("Zircon %s - The Zircon toolchain installer\n\n", ZIRCON_VERSION);
     printf("Usage: %s [OPTIONS] <COMMAND>\n\n", prog);
     printf("Commands:\n");
     printf("  self <SUBCOMMAND>     Commands to manage Zircon itself\n");
-    printf("  build <reference>     Build a specific version of zrc\n");
-    printf("  install [tag]         Install pre-built toolchains\n");
+    printf("  install [tag]         Install pre-built toolchains (default: nightly)\n");
     printf("  import <archive>      Import a toolchain from an archive\n");
     printf("  switch <version>      Switch to a different toolchain version\n");
     printf("  list                  List installed toolchains\n");
@@ -76,16 +74,6 @@ cli_context_t* parse_args(int argc, char** argv) {
             free(ctx);
             return NULL;
         }
-    } else if (strcmp(cmd, "build") == 0) {
-        ctx->command = CMD_BUILD;
-        if (argc < 3) {
-            fprintf(stderr, "Error: 'build' requires a reference argument\n");
-            free(ctx);
-            return NULL;
-        }
-        ctx->data.build_cmd.reference = string_duplicate(argv[2]);
-        ctx->data.build_cmd.repo_url = string_duplicate("https://github.com/zirco-lang/zrc.git");
-        /* TODO: Parse --zrc-repo flag */
     } else if (strcmp(cmd, "install") == 0) {
         ctx->command = CMD_INSTALL;
         ctx->data.install_cmd.tag = argc > 2 ? string_duplicate(argv[2]) : string_duplicate("nightly");
@@ -154,10 +142,6 @@ void free_cli_context(cli_context_t* ctx) {
             SAFE_FREE(ctx->data.self_cmd.archive);
             SAFE_FREE(ctx->data.self_cmd.tag);
             break;
-        case CMD_BUILD:
-            SAFE_FREE(ctx->data.build_cmd.reference);
-            SAFE_FREE(ctx->data.build_cmd.repo_url);
-            break;
         case CMD_INSTALL:
             SAFE_FREE(ctx->data.install_cmd.tag);
             break;
@@ -186,8 +170,6 @@ int dispatch_command(cli_context_t* ctx) {
     switch (ctx->command) {
         case CMD_SELF:
             return dispatch_self_command(ctx);
-        case CMD_BUILD:
-            return dispatch_build_command(ctx);
         case CMD_INSTALL:
             return dispatch_install_command(ctx);
         case CMD_IMPORT:

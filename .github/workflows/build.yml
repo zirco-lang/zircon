@@ -25,24 +25,22 @@ jobs:
                   # Make sure the actual branch is checked out when running on pull requests
                   ref: ${{ github.head_ref }}
                   repository: ${{github.event.pull_request.head.repo.full_name || github.repository }}
-            - name: Set up Rust
-              uses: actions-rs/toolchain@v1
-              with:
-                  toolchain: stable
-                  override: true
-            - name: Install Rust problem matchers
-              uses: r7kamura/rust-problem-matchers@v1
-            - name: Use dependency cache
-              uses: Swatinem/rust-cache@v2
-            - name: cargo build
-              uses: actions-rs/cargo@v1
-              with:
-                  command: build
-                  args: --release
+            - name: Install libarchive, libcurl, and OpenSSL dependencies
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libarchive-dev libssl-dev libcurl4-openssl-dev
+            - name: Install libarchive, libcurl, and OpenSSL dependencies
+              if: runner.os == 'macOS'
+              run: |
+                  brew install libarchive openssl curl
+            - name: Run make
+              run: |
+                  make -j2
             - name: Prepare artifacts directory
               run: |
                   mkdir -p outputs/bin
-                  cp target/release/zircon outputs/bin/
+                  cp dist/zircon outputs/bin/
             - name: Upload build artifacts
               uses: actions/upload-artifact@v6
               with:
@@ -76,7 +74,7 @@ jobs:
 
                       If you use the [Zircon toolchain manager](https://github.com/zirco-lang/zircon), you can easily install the built artifacts using these downloaded packages:
                       \`\`\`bash
-                      zircon self import ./zircon-Linux-X64-release.zip
+                      zircon self-import ./zircon-Linux-X64-release.zip
                       \`\`\``;
 
                       // Find existing comment

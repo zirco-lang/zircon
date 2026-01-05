@@ -20,13 +20,30 @@ Zircon does NOT support Windows. You must use WSL (Windows Subsystem for Linux) 
 
 Zircon requires the following dependencies to build and run Zirco:
 
--   **Rust** (install from [rustup.rs](https://rustup.rs/))
+-   **GCC** or **Clang** (C11 compiler)
+-   **Make**
+-   **libgit2** (development headers)
+-   **libcurl** (development headers)
+-   **libarchive** (development headers)
 -   **LLVM 20** (**REQUIRED** - Zirco only works with LLVM 20.x)
 -   **clang** (usually included with LLVM)
 -   **Git**
--   **zstd, libssl, pkg-config** (for building on Linux)
 
-#### Installing LLVM 20 and clang
+#### Installing Dependencies
+
+**On Ubuntu/Debian:**
+
+```bash
+sudo apt install build-essential libgit2-dev libcurl4-openssl-dev libarchive-dev llvm-20 llvm-20-dev libpolly-20-dev clang-20 libssl-dev pkg-config libzstd-dev
+```
+
+**On macOS (Homebrew):**
+
+```bash
+brew install llvm@20 libgit2 curl libarchive
+```
+
+#### Installing LLVM 20
 
 **On macOS (Homebrew):**
 
@@ -75,12 +92,12 @@ cd ~/.zircon/sources/zirco-lang/zircon
 # Optionally checkout a specific version
 # git checkout v0.1.0
 
-cargo build --release
+make
 
 # Create symlinks
 ln -sf ~/.zircon/sources/zirco-lang/zircon ~/.zircon/self
 mkdir -p ~/.zircon/bin
-ln -sf ~/.zircon/sources/zirco-lang/zircon/target/release/zircon ~/.zircon/bin/zircon
+ln -sf ~/.zircon/sources/zirco-lang/zircon/zircon ~/.zircon/bin/zircon
 
 # Add to PATH
 export PATH="$HOME/.zircon/bin:$PATH"
@@ -245,7 +262,7 @@ Zircon manages files in `~/.zircon` (or `%USERPROFILE%\.zircon` on Windows):
 ├── self -> sources/zirco-lang/zircon  # Symlink to zircon source
 └── bin/
     ├── zrc -> ../toolchains/current/bin/zrc
-    └── zircon -> ../sources/zirco-lang/zircon/target/release/zircon
+    └── zircon -> ../sources/zirco-lang/zircon/zircon
 ```
 
 You can override the installation directory with the `ZIRCON_PREFIX` environment variable:

@@ -119,15 +119,23 @@ else
     echo "Git found: $(git --version)"
 fi
 
-echo "Looking for Rust..."
-if ! command -v rustc &>/dev/null; then
-    echo "Rust not found, installing via rustup..."
-    echo "Please follow the prompts to complete the installation of the Rust toolchain."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    # shellcheck source=/dev/null
-    source "$HOME/.cargo/env"
+echo "Looking for a C compiler..."
+if ! command -v gcc &>/dev/null && ! command -v clang &>/dev/null; then
+    echo "Error: No C compiler found. Please install GCC or Clang and try again."
+    exit 1
 fi
-echo "Rust found: $(rustc --version)"
+if command -v gcc &>/dev/null; then
+    echo "GCC found: $(gcc --version | head -1)"
+else
+    echo "Clang found: $(clang --version | head -1)"
+fi
+
+echo "Looking for Make..."
+if ! command -v make &>/dev/null; then
+    echo "Error: Make not found. Please install Make and try again."
+    exit 1
+fi
+echo "Make found: $(make --version | head -1)"
 
 if [[ -d "$HOME/.zircon" ]]; then
     echo "Removing existing ~/.zircon directory to allow for a fresh install..."
@@ -163,8 +171,8 @@ else
     fi
     
     echo "Building Zircon..."
-    if ! cargo build --release; then
-        echo "Error: cargo build failed with exit code $?"
+    if ! make; then
+        echo "Error: make failed with exit code $?"
         exit 1
     fi
     
@@ -177,7 +185,7 @@ else
     # Create a symlink to the zircon binary in ~/.zircon/bin
     mkdir -p "$HOME/.zircon/bin"
     # ~/.zircon/bin/zircon is managed by this script. Later there will be other files in ~/.zircon/bin that Zircon itself manages.
-    if ! ln -sf "$HOME/.zircon/sources/zirco-lang/zircon/target/release/zircon" "$HOME/.zircon/bin/zircon"; then
+    if ! ln -sf "$HOME/.zircon/sources/zirco-lang/zircon/zircon" "$HOME/.zircon/bin/zircon"; then
         echo "Error: ln -sf (bin symlink) failed with exit code $?"
         exit 1
     fi

@@ -66,7 +66,6 @@ fi
     echo "Checking for prebuilt zircon binary..."
     
     # Detect platform and architecture
-    platform_arch
     if ! platform_arch=$(detect_platform_arch); then
         echo "Could not detect platform/architecture"
         exit 1
@@ -83,7 +82,6 @@ if curl -fsSL "$url" -o "$temp_file" 2>/dev/null; then
     echo "✓ Prebuilt binary found! Extracting..."
     
     # Create a temporary extraction directory
-    temp_extract_dir
     temp_extract_dir=$(mktemp -d)
     
     # Extract the archive to temporary directory with safety checks

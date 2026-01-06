@@ -12,10 +12,6 @@ ZIRCON_REF="${1:-nightly}"
 
 # Function to detect platform and architecture
 detect_platform_arch() {
-    os
-    arch
-    platform
-    architecture
     os=$(uname -s | tr '[:upper:]' '[:lower:]')
     arch=$(uname -m)
     

@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "delete.h": "c",
+        "stdio.h": "c",
+        "common.h": "c",
+        "cli.h": "c",
+        "install.h": "c",
+        "cstdlib": "c",
+        "stdbool.h": "c",
+        "libgen.h": "c",
+        "dirent.h": "c",
+        "unistd.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c",
+        "_string.h": "c",
+        "paths.h": "c",
+        "stdint.h": "c",
+        "stddef.h": "c",
+        "archive.h": "c",
+        "platform.h": "c",
+        "curl.h": "c",
+        "archive_entry.h": "c"
+    }
+}

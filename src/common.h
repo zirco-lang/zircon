@@ -1,0 +1,16 @@
+#pragma once
+
+#define ZIRCON_VERSION "1.0.0"
+
+#define ZIRCON_SELFINSTALL_DEFAULT_TAG "nightly"
+#define ZIRCON_INSTALL_DEFAULT_TAG "nightly"
+
+#define EXIT_SUCCESS 0
+#define EXIT_CLI_ERROR 1
+#define EXIT_GENERAL 2
+
+#define MAX_PATH 4096
+#define MAX_CMD 8192
+
+#define REQUIRED_LLVM_VERSION "20"
+#define LLVM_VERSION_DESC "LLVM 20.x"

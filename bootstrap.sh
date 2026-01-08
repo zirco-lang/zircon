@@ -44,14 +44,6 @@ detect_platform_arch() {
     echo "${platform}-${architecture}"
 }
 
-echo "Checking for Git..."
-if ! command -v git &>/dev/null; then
-    echo "Git not found, please install Git and try again."
-    exit 1
-else
-    echo "Git found: $(git --version)"
-fi
-
 if [[ -d "$HOME/.zircon" ]]; then
     echo "Removing existing ~/.zircon directory to allow for a fresh install..."
     rm -rf "$HOME/.zircon"
@@ -59,13 +51,13 @@ fi
 
 
 
-    echo "Checking for prebuilt zircon binary..."
+echo "Checking for prebuilt zircon binary..."
     
-    # Detect platform and architecture
-    if ! platform_arch=$(detect_platform_arch); then
-        echo "Could not detect platform/architecture"
-        exit 1
-    fi
+# Detect platform and architecture
+if ! platform_arch=$(detect_platform_arch); then
+    echo "Could not detect platform/architecture"
+    exit 1
+fi
     
 filename="zircon-${platform_arch}.tar.gz"
 url="https://github.com/zirco-lang/zircon/releases/download/${ZIRCON_REF}/${filename}"

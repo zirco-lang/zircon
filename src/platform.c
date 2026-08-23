@@ -3,6 +3,11 @@
 
 int detect_platform_and_arch(char *platform, size_t platform_size, char *arch, size_t arch_size)
 {
+#if defined(__APPLE__) && defined(_M_X64)
+    fprintf(stderr, "Zirco no longer builds binaries for x64 macOS, please build from source.\n");
+    return -1;
+#endif
+
 #ifdef __linux__
     snprintf(platform, platform_size, "linux");
 #elif defined(__APPLE__)

@@ -16,7 +16,6 @@ jobs:
                     - ubuntu-24.04
                     - ubuntu-24.04-arm
                     - macos-latest
-                    - macos-15-intel
 
         steps:
             - name: Checkout
@@ -70,7 +69,6 @@ jobs:
                       - **Linux x64**: \`zircon-Linux-X64-release\`
                       - **Linux ARM64**: \`zircon-Linux-ARM64-release\`
                       - **macOS ARM64**: \`zircon-macOS-ARM64-release\`
-                      - **macOS x64**: \`zircon-macOS-X64-release\`
 
                       If you use the [Zircon toolchain manager](https://github.com/zirco-lang/zircon), you can easily install the built artifacts using these downloaded packages:
                       \`\`\`bash
@@ -124,11 +122,6 @@ jobs:
               with:
                   name: zircon-Linux-ARM64-release
                   path: Linux-ARM64
-            - name: Download X86 macOS build artifact
-              uses: actions/download-artifact@v7
-              with:
-                  name: zircon-macOS-X64-release
-                  path: macOS-X64
             - name: Download ARM64 macOS build artifact
               uses: actions/download-artifact@v7
               with:
@@ -138,13 +131,11 @@ jobs:
               run: |
                   chmod +x Linux-X64/bin/zircon
                   chmod +x Linux-ARM64/bin/zircon
-                  chmod +x macOS-X64/bin/zircon
                   chmod +x macOS-ARM64/bin/zircon
             - name: Create tar archives
               run: |
                   tar -czf zircon-linux-x64.tar.gz -C Linux-X64 .
                   tar -czf zircon-linux-arm64.tar.gz -C Linux-ARM64 .
-                  tar -czf zircon-macos-x64.tar.gz -C macOS-X64 .
                   tar -czf zircon-macos-arm64.tar.gz -C macOS-ARM64 .
             - name: Update `nightly` release
               uses: softprops/action-gh-release@v1
@@ -161,7 +152,6 @@ jobs:
                   files: |
                       zircon-linux-x64.tar.gz
                       zircon-linux-arm64.tar.gz
-                      zircon-macos-x64.tar.gz
                       zircon-macos-arm64.tar.gz
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
